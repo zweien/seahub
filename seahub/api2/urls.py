@@ -17,6 +17,7 @@ from .endpoints.group_discussions import GroupDiscussions
 from .endpoints.group_discussion import GroupDiscussion
 from .endpoints.send_share_link_email import SendShareLinkView
 from .endpoints.send_upload_link_email import SendUploadLinkView
+from .endpoints.sso.client_sso_link import ClientSSOLink
 
 urlpatterns = [
     url(r'^ping/$', Ping.as_view()),
@@ -25,6 +26,8 @@ urlpatterns = [
     url(r'^server-info/$', ServerInfoView.as_view()),
     url(r'^logout-device/$', LogoutDeviceView.as_view()),
     url(r'^client-login/$', ClientLoginTokenView.as_view()),
+    url(r'^client-sso-link/$', ClientSSOLink.as_view()),
+    url(r'^client-sso-link/(?P<uuid>[^/]+)/$', ClientSSOLink.as_view()),
     url(r'^two-factor-auth/(?P<email>\S+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/$', TwoFactorAuthView.as_view(), name="two-factor-auth-view"),
     url(r'^device-wiped/$', RemoteWipeReportView.as_view()),
     url(r'^wopi/', include('seahub.wopi.urls')),
