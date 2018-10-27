@@ -17,37 +17,41 @@ from seahub.avatar.settings import (AVATAR_GRAVATAR_BACKUP, AVATAR_GRAVATAR_DEFA
 from seahub.avatar.util import get_primary_avatar, get_default_avatar_url, \
     cache_result, get_default_avatar_non_registered_url
 
+from seahub.avatar.util import get_alibaba_user_avatar_url
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 register = template.Library()
 
-@cache_result
+# @cache_result
 @register.simple_tag
 def avatar_url(user, size=AVATAR_DEFAULT_SIZE):
-    avatar = get_primary_avatar(user, size=size)
-    if avatar:
-        return avatar.avatar_url(size)
-    else:
-        if AVATAR_GRAVATAR_BACKUP:
-            params = {'s': str(size)}
-            if AVATAR_GRAVATAR_DEFAULT:
-                params['d'] = AVATAR_GRAVATAR_DEFAULT
-            return "http://www.gravatar.com/avatar/%s/?%s" % (
-                hashlib.md5(user.email).hexdigest(),
-                urllib.urlencode(params))
-        else:
-            return get_default_avatar_url()
+    return get_alibaba_user_avatar_url(user, size=size)
+    # avatar = get_primary_avatar(user, size=size)
+    # if avatar:
+    #     return avatar.avatar_url(size)
+    # else:
+    #     if AVATAR_GRAVATAR_BACKUP:
+    #         params = {'s': str(size)}
+    #         if AVATAR_GRAVATAR_DEFAULT:
+    #             params['d'] = AVATAR_GRAVATAR_DEFAULT
+    #         return "http://www.gravatar.com/avatar/%s/?%s" % (
+    #             hashlib.md5(user.email).hexdigest(),
+    #             urllib.urlencode(params))
+    #     else:
+    #         return get_default_avatar_url()
 
-@cache_result
+# @cache_result
 def api_avatar_url(user, size=AVATAR_DEFAULT_SIZE):
-    avatar = get_primary_avatar(user, size=size)
-    if avatar:
-        url = avatar.avatar_url(size)
-        date_uploaded = avatar.date_uploaded
-        return url, False, date_uploaded
-    else:
-        return get_default_avatar_url(), True, None
+    return get_alibaba_user_avatar_url(user, size=size), True, None
+    # avatar = get_primary_avatar(user, size=size)
+    # if avatar:
+    #     url = avatar.avatar_url(size)
+    #     date_uploaded = avatar.date_uploaded
+    #     return url, False, date_uploaded
+    # else:
+    #     return get_default_avatar_url(), True, None
 
 @cache_result
 @register.simple_tag

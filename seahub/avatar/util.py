@@ -8,7 +8,7 @@ from seahub.base.accounts import User
 from seahub.avatar.settings import AVATAR_DEFAULT_URL, AVATAR_CACHE_TIMEOUT,\
     AUTO_GENERATE_AVATAR_SIZES, AVATAR_DEFAULT_SIZE, \
     AVATAR_DEFAULT_NON_REGISTERED_URL, AUTO_GENERATE_GROUP_AVATAR_SIZES, \
-    AVATAR_FILE_STORAGE
+    AVATAR_FILE_STORAGE, AVATAR_CACHE_PREFIX
 
 cached_funcs = set()
 
@@ -127,5 +127,24 @@ def get_avatar_file_storage():
             'size_column': 'size',
             }
         return get_storage_class(AVATAR_FILE_STORAGE)(options=dbs_options)
-    
-    
+
+from seahub.alibaba.models import AlibabaProfile
+from seahub.utils import normalize_cache_key
+def get_alibaba_user_avatar_url(user, size=AVATAR_DEFAULT_SIZE):
+    if isinstance(user, User):
+        uid = user.username
+    else:
+        uid = user
+
+    key = normalize_cache_key(uid, AVATAR_CACHE_PREFIX)
+    cached_avatar = cache.get(key)
+    if cached_avatar and cached_avatar.strip():
+        return cached_avatar.strip()
+
+    ali_p = AlibabaProfile.objects.get_profile(uid)
+    if not ali_p:
+        return ''
+
+    url = 'https://work.alibaba-inc.com/photo/%s.%sx%s.jpg' % (ali_p.work_no, size, size)
+    cache.set(key, url, AVATAR_CACHE_TIMEOUT)
+    return url
