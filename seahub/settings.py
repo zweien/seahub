@@ -551,10 +551,10 @@ LOGIN_BG_IMAGE_PATH = 'img/login-bg.jpg'
 
 # Path to the favicon file (relative to the media path)
 # tip: use a different name when modify it.
-FAVICON_PATH = 'img/favicon.ico'
+FAVICON_PATH = 'img/alifile.ico'
 
 # Path to the Logo Imagefile (relative to the media path)
-LOGO_PATH = 'img/seafile-logo.png'
+LOGO_PATH = 'img/alifile.png'
 # logo size. the unit is 'px'
 LOGO_WIDTH = ''
 LOGO_HEIGHT = 32
