@@ -360,7 +360,7 @@ class ClientLoginTokenManager(models.Manager):
 
 class ClientLoginToken(models.Model):
     # TODO: update sql/mysql.sql and sql/sqlite3.sql
-    token = models.CharField(max_length=32, primary_key=True)
+    token = models.CharField(max_length=32, unique=True)
     username = models.CharField(max_length=255, db_index=True)
     timestamp = models.DateTimeField(default=timezone.now)
 

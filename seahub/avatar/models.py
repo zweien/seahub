@@ -133,7 +133,7 @@ class AvatarBase(object):
 
 class Avatar(models.Model, AvatarBase):
     emailuser = LowerCaseCharField(max_length=255)
-    primary = models.BooleanField(default=False)
+    primary = models.BooleanField(default=False, db_column='is_primary')
     avatar = models.ImageField(max_length=1024,
                                upload_to=avatar_file_path,
                                storage=get_avatar_file_storage(),

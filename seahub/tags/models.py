@@ -164,7 +164,7 @@ class FileTagManager(models.Manager):
 
 ########## Model
 class FileUUIDMap(models.Model):
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4)
     repo_id = models.CharField(max_length=36, db_index=True)
     repo_id_parent_path_md5 = models.CharField(max_length=100, db_index=True)
     parent_path = models.TextField()
@@ -197,7 +197,7 @@ class Tags(models.Model):
 
 
 class FileTag(models.Model):
-    uuid = models.ForeignKey(FileUUIDMap, on_delete=models.CASCADE)
+    uuid = models.ForeignKey(FileUUIDMap, to_field='uuid', on_delete=models.CASCADE)
     tag = models.ForeignKey(Tags)
     username = LowerCaseCharField(max_length=255)
 

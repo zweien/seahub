@@ -16,7 +16,7 @@ class Token(models.Model):
     """
     The default authorization token model.
     """
-    key = models.CharField(max_length=40, primary_key=True)
+    key = models.CharField(max_length=40, unique=True, db_column='token_key')
     user = LowerCaseCharField(max_length=255, unique=True)
     created = models.DateTimeField(auto_now_add=True)
 
@@ -133,7 +133,7 @@ class TokenV2(models.Model):
     Device specific token
     """
 
-    key = models.CharField(max_length=40, primary_key=True)
+    key = models.CharField(max_length=40, unique=True, db_column='token_key')
 
     user = LowerCaseCharField(max_length=255)
 

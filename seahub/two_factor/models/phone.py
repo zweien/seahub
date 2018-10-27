@@ -26,6 +26,7 @@ class PhoneDevice(Device):
     """
     number = models.CharField(max_length=40) # todo
     key = models.CharField(max_length=40,
+                           db_column='device_key',
                            validators=[key_validator],
                            default=random_hex,
                            help_text="Hex-encoded secret key")

@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 ########## system notification
 class Notification(models.Model):
     message = models.CharField(max_length=512)
-    primary = models.BooleanField(default=False, db_index=True)
+    primary = models.BooleanField(default=False, db_column='is_primary')
 
 class NotificationForm(ModelForm):
     """
