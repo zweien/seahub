@@ -27,6 +27,7 @@ from seahub.utils import is_user_password_strong, get_site_name, \
 from seahub.utils.mail import send_html_email_with_dj_template, MAIL_PRIORITY
 from seahub.utils.licenseparse import user_number_over_limit
 from seahub.share.models import ExtraSharePermission
+from seahub.alibaba.models import AlibabaProfile
 
 try:
     from seahub.settings import CLOUD_MODE
@@ -88,26 +89,46 @@ class UserManager(object):
         return user_list
 
     def get(self, email=None, id=None):
+
         if not email and not id:
             raise User.DoesNotExist, 'User matching query does not exits.'
 
         if email:
             emailuser = ccnet_threaded_rpc.get_emailuser(email)
+            alibaba_profile = AlibabaProfile.objects.get_profile(email)
         if id:
             emailuser = ccnet_threaded_rpc.get_emailuser_by_id(id)
-        if not emailuser:
+            alibaba_profile = None
+
+        if not emailuser and not alibaba_profile:
             raise User.DoesNotExist, 'User matching query does not exits.'
 
-        user = User(emailuser.email)
-        user.id = emailuser.id
-        user.enc_password = emailuser.password
-        user.is_staff = emailuser.is_staff
-        user.is_active = emailuser.is_active
-        user.ctime = emailuser.ctime
-        user.org = emailuser.org
-        user.source = emailuser.source
-        user.role = emailuser.role
-        user.reference_id = emailuser.reference_id
+        if not emailuser:
+            ccnet_api.add_emailuser(email, UNUSABLE_PASSWORD, 0, 0)
+            emailuser = ccnet_threaded_rpc.get_emailuser(email)
+
+        if emailuser:
+            user = User(emailuser.email)
+            user.id = emailuser.id
+            user.enc_password = emailuser.password
+            user.is_staff = emailuser.is_staff
+            user.is_active = emailuser.is_active
+            user.ctime = emailuser.ctime
+            user.org = emailuser.org
+            user.source = emailuser.source
+            user.role = emailuser.role
+            user.reference_id = emailuser.reference_id
+        else:
+            user = User(alibaba_profile.uid)
+            user.id = ''
+            user.enc_password = '!'
+            user.is_staff = 0
+            user.is_active = 0
+            user.ctime = ''
+            user.org = None
+            user.source = 'DB'
+            user.role = 'guest'
+            user.reference_id = ''
 
         if user.is_staff:
             try:
