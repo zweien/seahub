@@ -34,6 +34,13 @@ class Token(models.Model):
 
 class TokenV2Manager(models.Manager):
 
+    def get_client_version_by_token(self, token):
+        try:
+            token_v2 = TokenV2.objects.get(key=token)
+            return token_v2.client_version
+        except TokenV2.DoesNotExist:
+            return ''
+
     def get_devices(self, platform, start, end):
         devices = super(TokenV2Manager, self).filter(wiped_at=None)
         if platform == 'desktop':

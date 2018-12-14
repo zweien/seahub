@@ -4345,6 +4345,15 @@ class EventsView(APIView):
     throttle_classes = (UserRateThrottle, )
 
     def get(self, request, format=None):
+
+        client_auth = request.META.get('HTTP_AUTHORIZATION', '').split()
+        if client_auth:
+            token = client_auth[1]
+            client_version = TokenV2.objects.get_client_version_by_token(token)
+            if client_version in ('1.0.0', '1.0.1', '1.0.2', '1.0.3',
+                    '1.0.4', '6.1.8'):
+                return api_error(status.HTTP_404_NOT_FOUND, 'Events not enabled.')
+
         if not EVENTS_ENABLED:
             events = None
             return api_error(status.HTTP_404_NOT_FOUND, 'Events not enabled.')
