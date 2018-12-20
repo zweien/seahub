@@ -481,8 +481,7 @@ class ReposBatchCopyDirView(APIView):
             current_size = 0
             current_dir_id = seafile_api.get_dir_id_by_path(src_repo_id,
                     src_path)
-            current_size = seafile_api.get_dir_size(src_repo.store_id,
-                    src_repo.version, current_dir_id)
+            current_size = 0
 
             total_size += current_size
 

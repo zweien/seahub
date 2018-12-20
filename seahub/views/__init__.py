@@ -995,8 +995,7 @@ def repo_download_dir(request, repo_id):
         dir_id = seafile_api.get_dir_id_by_commit_and_path(repo.id,
             repo.head_cmmt_id, path)
         try:
-            total_size = seafile_api.get_dir_size(repo.store_id,
-                repo.version, dir_id)
+            total_size = 0
         except Exception, e:
             logger.error(str(e))
             return render_error(request, _(u'Internal Error'))

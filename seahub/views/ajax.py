@@ -685,8 +685,7 @@ def dirents_copy_move_common():
             for obj_name in obj_dir_names:
                 full_obj_path = posixpath.join(parent_dir, obj_name)
                 dir_obj_id = seafile_api.get_dir_id_by_path(repo_id, full_obj_path)
-                dir_obj_size += seafile_api.get_dir_size(
-                        repo.store_id, repo.version, dir_obj_id)
+                dir_obj_size += 0
 
             # check quota
             src_repo_owner = seafile_api.get_repo_owner(repo_id)
@@ -789,8 +788,7 @@ def mv_dirents(request, src_repo_id, src_path, dst_repo_id, dst_path,
             current_dir_id = seafile_api.get_dir_id_by_path(src_repo_id,
                     current_path)
             if current_dir_id:
-                current_size = seafile_api.get_dir_size(repo.store_id,
-                        repo.version, current_dir_id)
+                current_size = 0
 
             total_size += current_size
 
@@ -862,8 +860,7 @@ def cp_dirents(request, src_repo_id, src_path, dst_repo_id, dst_path, obj_file_n
         current_dir_id = seafile_api.get_dir_id_by_path(src_repo_id,
                 current_path)
         if current_dir_id:
-            current_size = seafile_api.get_dir_size(repo.store_id,
-                    repo.version, current_dir_id)
+            current_size = 0
 
         total_size += current_size
 

@@ -142,8 +142,7 @@ class CopyMoveTaskView(APIView):
                         src_repo.version, file_id)
 
             if dir_id:
-                current_size = seafile_api.get_dir_size(src_repo.store_id,
-                        src_repo.version, dir_id)
+                current_size = 0
 
             # check if above quota for dst repo
             if seafile_api.check_quota(dst_repo_id, current_size) < 0:

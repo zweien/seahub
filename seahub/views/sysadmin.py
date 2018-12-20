@@ -764,7 +764,7 @@ def user_info(request, email):
                     path += '/'
                 # get dir size
                 dir_id = seafile_api.get_dir_id_by_commit_and_path(r.id, r.head_cmmt_id, path)
-                fs.dir_size = seafile_api.get_dir_size(r.store_id, r.version, dir_id)
+                fs.dir_size = 0
 
             fs.is_download = True
             p_fileshares.append(fs)

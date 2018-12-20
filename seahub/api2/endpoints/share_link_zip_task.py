@@ -95,8 +95,7 @@ class ShareLinkZipTaskView(APIView):
         dir_name = repo.name if real_path == '/' else \
                 os.path.basename(real_path.rstrip('/'))
 
-        dir_size = seafile_api.get_dir_size(
-                repo.store_id, repo.version, dir_id)
+        dir_size = 0
         if dir_size > seaserv.MAX_DOWNLOAD_DIR_SIZE:
             error_msg = _('Unable to download directory "%s": size is too large.') % dir_name
             return api_error(status.HTTP_400_BAD_REQUEST, error_msg)
