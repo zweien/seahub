@@ -1,4 +1,5 @@
 # Copyright (c) 2012-2016 Seafile Ltd.
+# -*- coding: utf-8 -*-
 import os
 import logging
 import posixpath
@@ -21,11 +22,13 @@ from seahub.utils import check_filename_with_rename, is_pro_version, \
     normalize_dir_path, get_file_type_and_ext
 from seahub.utils.timeutils import timestamp_to_isoformat_timestr
 from seahub.views import check_folder_permission
-from seahub.utils.file_op import check_file_lock, if_locked_by_online_office
+from seahub.utils.file_op import check_file_lock, if_locked_by_online_office, \
+        ONLINE_OFFICE_LOCK_OWNER
 from seahub.views.file import can_preview_file, can_edit_file
 from seahub.constants import PERMISSION_READ_WRITE
 from seahub.utils.repo import parse_repo_perm
 from seahub.utils.file_types import MARKDOWN, TEXT
+from seahub.base.templatetags.seahub_tags import email2nickname
 
 from seahub.settings import MAX_UPLOAD_FILE_NAME_LEN, \
     FILE_LOCK_EXPIRATION_DAYS, OFFICE_TEMPLATE_ROOT
@@ -658,7 +661,22 @@ class FileView(APIView):
             return api_error(status.HTTP_500_INTERNAL_SERVER_ERROR, error_msg)
 
         if is_locked and not locked_by_me:
-            error_msg = _("File is locked")
+
+            lock_info = seafile_api.get_lock_info(repo_id, path)
+
+            lock_owner = lock_info.user
+
+            if lock_owner == ONLINE_OFFICE_LOCK_OWNER:
+                if request.LANGUAGE_CODE == 'zh-cn':
+                    error_msg = u"文件正在被编辑或2分钟之内被编辑过，暂时无法删除，请稍后再试"
+                else:
+                    error_msg = u"The file has been being edited within 2 minutes, it can't be removed at the moment, please try again later"
+            else:
+                if request.LANGUAGE_CODE == 'zh-cn':
+                    error_msg = u"文件已被 %s 锁定，无法删除" % email2nickname(lock_owner)
+                else:
+                    error_msg = u"The file is locked by %s, it can't be removed" % email2nickname(lock_owner)
+
             return api_error(status.HTTP_403_FORBIDDEN, error_msg)
 
         # delete file
