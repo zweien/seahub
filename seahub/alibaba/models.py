@@ -293,3 +293,27 @@ class AlibabaUserEditFile(models.Model):
     class Meta:
         managed = False
         db_table = 'alibaba_usereditfile'
+
+
+class AlibabaUserSrcLogManager(models.Manager):
+
+    def add_user_src_log(self, username, user_src):
+
+        if not super(AlibabaUserSrcLogManager, self).filter(uid=username):
+            info = self.model(uid=username, user_src=user_src)
+            info.save(using=self._db)
+            return info
+
+
+class AlibabaUserSrcLog(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    uid = models.CharField(max_length=191)
+    user_src = models.TextField()
+    gmt_create = models.DateTimeField(blank=True, null=True, default=timezone.now)
+    gmt_modified = models.DateTimeField(blank=True, null=True, default=timezone.now)
+
+    objects = AlibabaUserSrcLogManager()
+
+    class Meta:
+        managed = False
+        db_table = 'user_src_log'
