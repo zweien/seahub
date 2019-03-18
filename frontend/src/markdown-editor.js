@@ -5,6 +5,7 @@ import { Value, Document, Block } from 'slate';
 import { seafileAPI } from './utils/seafile-api';
 import { Utils } from './utils/utils';
 import { gettext } from './utils/constants';
+import URLDecorator from './utils/url-decorator';
 import io from 'socket.io-client';
 import toaster from './components/toast';
 import ModalPortal from './components/modal-portal';
@@ -18,7 +19,6 @@ import { serialize, deserialize } from '@seafile/seafile-editor/dist/utils/slate
 import LocalDraftDialog from './components/dialog/local-draft-dialog';
 import DiffViewer from '@seafile/seafile-editor/dist/viewer/diff-viewer';
 import MarkdownViewerToolbar from './components/toolbar/markdown-viewer-toolbar';
-import HistoryList from './components/markdown-view/history-list';
 import CommentPanel from './components/file-view/comment-panel';
 import OutlineView from './components/markdown-view/outline';
 import Loading from './components/loading';
@@ -306,7 +306,6 @@ class MarkdownEditor extends React.Component {
       loadingDiff: false,
       value: null,
       isShowComments: false,
-      isShowHistory: false,
       isShowOutline: true,
     };
 
@@ -912,31 +911,22 @@ class MarkdownEditor extends React.Component {
   }
 
   toggleHistory = () => {
-    if (this.state.isShowHistory) {
-      this.setState({
-        isShowHistory: false,
-        isShowOutline: true,
-        isShowComments: false,
-      });
-    } else {
-      this.setState({
-        isShowHistory: true,
-        isShowOutline: false,
-        isShowComments: false,
-      });
-    }
+    let url = URLDecorator.getUrl({
+      type: 'file_revisions',
+      repoID: repoID,
+      filePath: editorUtilities.filePath
+    });
+    location.href = url;
   }
 
   toggleCommentList = () => {
     if (this.state.isShowComments) {
       this.setState({
-        isShowHistory: false,
         isShowOutline: true,
         isShowComments: false,
       });
     } else {
       this.setState({
-        isShowHistory: false,
         isShowOutline: false,
         isShowComments: true,
       });
@@ -945,9 +935,7 @@ class MarkdownEditor extends React.Component {
 
   render() {
     let component;
-    let sidePanel = this.state.isShowHistory ? true : false;
-    let markdownViewer = sidePanel ? "seafile-md-viewer-slate side-panel-on" :
-      (this.state.isShowComments ? "seafile-md-viewer-slate comment-on" : "seafile-md-viewer-slate");
+    let markdownViewer = this.state.isShowComments ? "seafile-md-viewer-slate comment-on" : "seafile-md-viewer-slate";
     if (this.state.loading) {
       return (
         <div className="empty-loading-page">
@@ -974,35 +962,20 @@ class MarkdownEditor extends React.Component {
               toggleNewDraft={editorUtilities.createDraftFile}
               commentsNumber={this.state.commentsNumber}
               toggleCommentList={this.toggleCommentList}
-              showFileHistory={this.state.isShowHistory ? false : true }
+              showFileHistory={true}
               toggleHistory={this.toggleHistory}
             />
             <div className="seafile-md-viewer d-flex">
-              <div className={sidePanel ? "seafile-md-viewer-container side-panel-on":"seafile-md-viewer-container"} ref="markdownContainer">
-                {
-                  this.state.isShowHistory ?
-                    <div className="diff-container">
-                      <div className="diff-wrapper article">
-                        { this.state.loadingDiff ?
-                          <Loading/> :
-                          <DiffViewer
-                            newMarkdownContent={this.state.markdownContent}
-                            oldMarkdownContent={this.state.oldMarkdownContent}
-                          />
-                        }
-                      </div>
-                    </div>
-                    :
-                    <div className={markdownViewer}>
-                      <MarkdownViewerSlate
-                        relatedFiles={this.state.relatedFiles}
-                        siteRoot={siteRoot}
-                        value={this.state.value}
-                      />
-                    {this.state.isShowComments &&
-                      <i className="fa fa-plus-square seafile-viewer-comment-btn" ref="commentbtn" onMouseDown={this.addComment}></i>}
-                    </div>
-                }
+              <div className="seafile-md-viewer-container" ref="markdownContainer">
+                <div className={markdownViewer}>
+                  <MarkdownViewerSlate
+                    relatedFiles={this.state.relatedFiles}
+                    siteRoot={siteRoot}
+                    value={this.state.value}
+                  />
+                {this.state.isShowComments &&
+                  <i className="fa fa-plus-square seafile-viewer-comment-btn" ref="commentbtn" onMouseDown={this.addComment}></i>}
+                </div>
                 {
                   this.state.isShowOutline &&
                   <OutlineView
@@ -1012,18 +985,6 @@ class MarkdownEditor extends React.Component {
                   />
                 }
                 {this.state.isShowComments && <CommentPanel toggleCommentPanel={this.toggleCommentList}/>}
-              </div>
-              <div className="seafile-md-viewer-side-panel">
-                {
-                  this.state.isShowHistory &&
-                  <HistoryList
-                    editorUtilities={editorUtilities}
-                    showDiffViewer={this.showDiffViewer}
-                    setDiffViewerContent={this.setDiffViewerContent}
-                    reloadDiffContent={this.reloadDiffContent}
-                    toggleHistoryPanel={this.toggleHistory}
-                  />
-                }
               </div>
             </div>
           </div>
