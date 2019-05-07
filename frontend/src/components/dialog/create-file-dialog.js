@@ -17,7 +17,7 @@ class CreateFile extends React.Component {
     super(props);
     this.state = {
       parentPath: '',
-      childName: props.fileType || '',
+      childName: '',
       isDraft: false,
       errMessage: '',
       isSubmitBtnActive: false,
@@ -53,9 +53,8 @@ class CreateFile extends React.Component {
       return;
     }
 
-    let isDuplicated = this.checkDuplicatedName();
-    let newName = this.state.childName;
-    
+    let newName = this.checkSuffix();
+    let isDuplicated = this.checkDuplicatedName(newName);
     if (isDuplicated) {
       let errMessage = gettext('The name "{name}" is already taken. Please choose a different name.');
       errMessage = errMessage.replace('{name}', Utils.HTMLescape(newName));
@@ -127,9 +126,23 @@ class CreateFile extends React.Component {
     this.props.addFileCancel();
   }
 
-  checkDuplicatedName = () => {
-    let isDuplicated = this.props.checkDuplicatedName(this.state.childName);
+  checkDuplicatedName = (newName) => {
+    let isDuplicated = this.props.checkDuplicatedName(newName);
     return isDuplicated;
+  }
+
+  checkSuffix = () => {
+    let fileName = this.state.childName;
+    let fileType = this.props.fileType;
+    if ((fileType == '.docx' && fileName.endsWith('.doc')) ||
+    (fileType == '.xlsx' && fileName.endsWith('.xls')) ||
+    (fileType == '.pptx' && fileName.endsWith('.ppt'))) {
+      fileName += 'x';
+    }
+    if (!fileName.endsWith(fileType)){
+      fileName += fileType;
+    }
+    return fileName;
   }
 
   render() {
