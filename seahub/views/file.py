@@ -78,6 +78,8 @@ from seahub.thumbnail.utils import extract_xmind_image, get_thumbnail_src, \
 from seahub.drafts.utils import get_file_draft, \
         is_draft_file, has_draft_file
 
+from seahub.alibaba.views import alibaba_err_msg_when_unable_to_view_file
+
 if HAS_OFFICE_CONVERTER:
     from seahub.utils import (
         query_office_convert_status, add_office_convert_task,
@@ -433,7 +435,8 @@ def convert_repo_path_when_can_not_view_file(request, repo_id, path):
     username = request.user.username
     converted_repo_path = seafile_api.convert_repo_path(repo_id, path, username)
     if not converted_repo_path:
-        return render_permission_error(request, _(u'Unable to view file'))
+        return render_permission_error(request,
+                alibaba_err_msg_when_unable_to_view_file(request, repo_id))
 
     converted_repo_path = json.loads(converted_repo_path)
 
@@ -455,12 +458,14 @@ def convert_repo_path_when_can_not_view_file(request, repo_id, path):
             return render_error(request, _(u'Group does not exist'))
 
         if not is_group_member(group_id, username):
-            return render_permission_error(request, _(u'Unable to view file'))
+            return render_permission_error(request,
+                    alibaba_err_msg_when_unable_to_view_file(request, repo_id))
 
     parent_dir = os.path.dirname(path)
     permission = check_folder_permission(request, repo_id, parent_dir)
     if not permission:
-        return render_permission_error(request, _(u'Unable to view file'))
+        return render_permission_error(request,
+                alibaba_err_msg_when_unable_to_view_file(request, repo_id))
 
     next_url = reverse('view_lib_file', args=[repo_id, path])
     return HttpResponseRedirect(next_url)
@@ -501,7 +506,8 @@ def view_lib_file(request, repo_id, path):
             use_onetime=settings.FILESERVER_TOKEN_ONCE_ONLY)
 
         if not token:
-            return render_permission_error(request, _(u'Unable to view file'))
+            return render_permission_error(request,
+                    alibaba_err_msg_when_unable_to_view_file(request, repo_id))
 
         dl_or_raw_url = gen_file_get_url(token, filename)
 
@@ -992,7 +998,8 @@ def view_history_file(request, repo_id):
     ret_dict = {}
     view_history_file_common(request, repo_id, ret_dict)
     if not request.user_perm:
-        return render_permission_error(request, _(u'Unable to view file'))
+        return render_permission_error(request,
+                alibaba_err_msg_when_unable_to_view_file(request, repo_id))
 
     if ret_dict.has_key('wopi_dict'):
         wopi_dict = ret_dict['wopi_dict']
@@ -1014,7 +1021,8 @@ def view_trash_file(request, repo_id):
     ret_dict = {}
     view_history_file_common(request, repo_id, ret_dict)
     if not request.user_perm:
-        return render_permission_error(request, _(u'Unable to view file'))
+        return render_permission_error(request,
+                alibaba_err_msg_when_unable_to_view_file(request, repo_id))
 
     if ret_dict.has_key('wopi_dict'):
         wopi_dict = ret_dict['wopi_dict']
@@ -1039,7 +1047,8 @@ def view_snapshot_file(request, repo_id):
     ret_dict = {}
     view_history_file_common(request, repo_id, ret_dict)
     if not request.user_perm:
-        return render_permission_error(request, _(u'Unable to view file'))
+        return render_permission_error(request,
+                alibaba_err_msg_when_unable_to_view_file(request, repo_id))
 
     if ret_dict.has_key('wopi_dict'):
         wopi_dict = ret_dict['wopi_dict']
