@@ -249,34 +249,27 @@ class AlibabaRepoOwnerChain(models.Model):
 
 class AlibabaUserEditFileManager(models.Manager):
 
-    def add_or_update_start_edit_info(self, user, repo_id, path,
-            wopi_oldlock, wopi_lock):
+    def get_edit_info_by_unique_id(self, unique_id):
 
-        # OOS will send multi POST request to lock/refresh-lock
-        # when user is editing file
-
-        infos = self.filter(user=user, repo_id=repo_id, path=path,
-                wopi_lock=wopi_oldlock)
-        if len(infos) == 0:
-            # if no lock info stored in db, that means file is not locked, add init lock info
-            info = self.model(user=user, repo_id=repo_id,
-                    path=path, wopi_lock=wopi_lock)
+        infos = self.filter(wopi_lock=unique_id)
+        if len(infos) > 0:
+            return infos[0]
         else:
-            # if has lock info stored in db, update lock info
-            info = infos[0]
-            info.wopi_lock = wopi_lock
+            return None
 
+    def add_start_edit_info(self, username, repo_id, file_path, unique_id):
+
+        info = self.model(user=username, repo_id=repo_id, path=file_path,
+                wopi_lock=unique_id)
         info.save(using=self._db)
         return info
 
-    def complete_end_edit_info(self, user, repo_id, path, wopi_lock):
+    def complete_end_edit_info(self, unique_id):
 
-        infos = self.filter(user=user, repo_id=repo_id, path=path, wopi_lock=wopi_lock)
-        for info in infos:
-            if not info.end_timestamp:
-                info.end_timestamp = timezone.now()
-                info.save(using=self._db)
-                return
+        info = self.get_edit_info_by_unique_id(unique_id)
+        info.end_timestamp = timezone.now()
+        info.save(using=self._db)
+        return info
 
 
 class AlibabaUserEditFile(models.Model):

@@ -46,5 +46,63 @@
     document.getElementById('office_frame').className = '';
 </script>
 {% include 'snippets/wopi_onlyoffice_js.html' %}
+<script>
+var view_edit_unique_id;
+var unique_id = Math.random().toString(16).slice(2);
+var can_edit = {% if can_edit %}true{% else %}false{% endif %};
+
+if (can_edit) {
+    view_edit_unique_id = 'edit_' + unique_id;
+} else {
+    view_edit_unique_id = 'view_' + unique_id;
+}
+
+$.ajax({
+    url: '{% url "alibaba-api-user-edit-file" %}',
+    type: 'POST',
+    dataType: 'json',
+    data: {
+        'repo_id': '{{ repo_id }}',
+        'path': '{{ path }}',
+        'unique_id': view_edit_unique_id,
+        'share_link_token': '{{share_link_token}}'
+    },
+    cache: false,
+    beforeSend: prepareCSRFToken,
+    success: function(data) {
+    },
+    error: function(xhr) {
+        if (xhr.responseText) {
+            feedback(JSON.parse(xhr.responseText).error_msg, 'error');
+        } else {
+            feedback("{% trans "Failed. Please check the network." %}", 'error');
+        }
+    }
+});
+
+window.onbeforeunload = function () {
+
+    $.ajax({
+        url: '{% url "alibaba-api-user-edit-file" %}',
+        type: 'PUT',
+        dataType: 'json',
+        data: {
+            'unique_id': view_edit_unique_id,
+            'share_link_token': '{{share_link_token}}'
+        },
+        cache: false,
+        beforeSend: prepareCSRFToken,
+        success: function(data) {
+        },
+        error: function(xhr) {
+            if (xhr.responseText) {
+                feedback(JSON.parse(xhr.responseText).error_msg, 'error');
+            } else {
+                feedback("{% trans "Failed. Please check the network." %}", 'error');
+            }
+        }
+    });
+};
+</script>
 </body>
 </html>
