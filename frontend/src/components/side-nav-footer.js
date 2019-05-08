@@ -1,7 +1,5 @@
 import React from 'react';
-import { gettext, siteRoot } from '../utils/constants';
-import ModalPortal from './modal-portal';
-import AboutDialog from './dialog/about-dialog';
+import { gettext, mediaUrl, siteRoot } from '../utils/constants';
 
 class SideNavFooter extends React.Component {
 
@@ -17,21 +15,25 @@ class SideNavFooter extends React.Component {
   }
 
   render() {
-    return (
-      <div className="side-nav-footer">
-        <a href={siteRoot + 'help/'} target="_blank" rel="noopener noreferrer" className="item">{gettext('Help')}</a>
-        <a className="item cursor-pointer" onClick={this.onAboutDialogToggle}>{gettext('About')}</a>
-        <a href={siteRoot + 'download_client_program/'} className="item last-item">
-          <span aria-hidden="true" className="sf2-icon-monitor vam"></span>{' '}
-          <span className="vam">{gettext('Clients')}</span>
-        </a>
-        {this.state.isAboutDialogShow &&
-          <ModalPortal>
-            <AboutDialog onCloseAboutDialog={this.onAboutDialogToggle} />
-          </ModalPortal>
-        }
-      </div>
-    );
+    if (window.app.config.lang === 'zh-cn') {
+      return (
+        <div className="side-nav-footer">
+          <div rel="noopener noreferrer" className="item">
+            <img src={mediaUrl + 'img/alibaba-information-platfrom.png'}  height="22" style={{marginRight: 'auto',}} />
+          </div>
+          <a href={siteRoot + 'help/'} target="_blank" rel="noopener noreferrer" className="item last-item" style={{marginLeft: 'auto',}}>{'帮助'}</a>
+        </div>
+      );
+    } else {
+      return (
+        <div className="side-nav-footer">
+          <div rel="noopener noreferrer" className="item">
+            <img src={mediaUrl + 'img/alibaba-information-platfrom.png'}  height="22" style={{marginRight: 'auto',}} />
+          </div>
+          <a href={siteRoot + 'help/'} target="_blank" rel="noopener noreferrer" className="item last-item" style={{marginLeft: 'auto',}}>{'Help'}</a>
+        </div>
+      );
+    }
   }
 }
 
