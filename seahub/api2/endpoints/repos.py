@@ -22,13 +22,15 @@ from seahub.views import check_folder_permission, list_inner_pub_repos
 from seahub.share.models import ExtraSharePermission
 from seahub.group.utils import group_id_to_name
 from seahub.utils import is_org_context, is_pro_version
-from seahub.utils.timeutils import timestamp_to_isoformat_timestr
+from seahub.utils.timeutils import timestamp_to_isoformat_timestr, datetime_to_isoformat_timestr
 from seahub.utils.repo import get_repo_owner, is_repo_admin, \
         repo_has_been_shared_out, get_related_users_by_repo, normalize_repo_status_code
 
 from seahub.settings import ENABLE_STORAGE_CLASSES
 
 from seaserv import seafile_api, send_message
+
+from seahub.alibaba.models import AlibabaProfile, AlibabaRepoOwnerChain
 
 logger = logging.getLogger(__name__)
 
@@ -323,6 +325,46 @@ class RepoView(APIView):
             has_been_shared_out = False
             logger.error(e)
 
+        # get repo owner chain info
+        owner_chain = []
+        chains = AlibabaRepoOwnerChain.objects.get_repo_owner_chain(repo_id)
+        for item in chains:
+
+            operator = item.operator
+            operator_dict = AlibabaProfile.objects.get_profile_dict(operator)
+
+            from_user = item.from_user
+            from_user_dict = AlibabaProfile.objects.get_profile_dict(from_user)
+
+            to_user = item.to_user
+            to_user_dict = AlibabaProfile.objects.get_profile_dict(to_user)
+
+            info = {
+                "time": datetime_to_isoformat_timestr(item.timestamp),
+                "operation": item.operation,
+
+                "operator": item.operator,
+                "operator_name": email2nickname(operator),
+                "operator_work_no": operator_dict['work_no'],
+                "operator_department": operator_dict['dept_name'],
+                "operator_position": operator_dict['post_name'],
+
+                "from_user": from_user,
+                "from_user_name": email2nickname(from_user),
+                "from_user_work_no": from_user_dict['work_no'],
+                "from_user_department": from_user_dict['dept_name'],
+                "from_user_position": from_user_dict['post_name'],
+
+                "to_user": to_user,
+                "to_user_name": email2nickname(to_user),
+                "to_user_work_no": to_user_dict['work_no'],
+                "to_user_department": to_user_dict['dept_name'],
+                "to_user_position": to_user_dict['post_name'],
+            }
+
+            owner_chain.append(info)
+
+
         result = {
             "repo_id": repo.id,
             "repo_name": repo.name,
@@ -343,6 +385,7 @@ class RepoView(APIView):
             "lib_need_decrypt": lib_need_decrypt,
             "last_modified": timestamp_to_isoformat_timestr(repo.last_modify),
             "status": normalize_repo_status_code(repo.status),
+            "owner_chain": owner_chain,
         }
 
         return Response(result)

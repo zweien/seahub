@@ -42,6 +42,30 @@ class LibDetail extends React.Component {
     let smallIconUrl = Utils.getLibIconUrl(repo);
     let bigIconUrl = Utils.getLibIconUrl(repo, true);
 
+    let isZHCN = window.app.config.lang === 'zh-cn';
+    const ownerChainElements = repo.owner_chain.map((chain, index) =>{
+      let user = chain.to_user_name;
+      let fromTime = moment(chain.time).format('YYYY-MM-DD');
+
+      if (index === 0) {
+        return(
+          <div key={index}>
+            <span>{fromTime + (isZHCN ? ' 到 现在' : ' till Now')}</span><br />
+            <span title="'+user+'">{user}</span>
+          </div>
+        );
+      } else {
+        let toTime = moment(repo.owner_chain[index - 1].time).format('YYYY-MM-DD');
+        return(
+          <div key={index}>
+            <span>{fromTime + (isZHCN ? ' 到 ' : ' to ') + toTime}</span><br />
+            <span title="'+user+'">{user}</span>
+          </div>
+        );
+      }
+    }
+    );
+
     return (
       <div className="detail-container">
         <div className="detail-header">
@@ -64,6 +88,7 @@ class LibDetail extends React.Component {
                 <tr><th>{gettext('Files')}</th><td>{this.state.fileCount}</td></tr>
                 <tr><th>{gettext('Size')}</th><td>{repo.size}</td></tr>
                 <tr><th>{gettext('Last Update')}</th><td>{ moment(repo.last_modified).fromNow()}</td></tr>
+                <tr><th style={{verticalAlign:'top'}} >{gettext('Owner')}</th><td>{ownerChainElements}</td></tr>
               </tbody>
             </table>
           </div>

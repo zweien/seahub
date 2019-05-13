@@ -21,6 +21,7 @@ class RepoInfo {
     this.lib_need_decrypt = object.lib_need_decrypt;
     this.last_modified= object.last_modified;
     this.status = object.status;
+    this.owner_chain = object.owner_chain;
   }
 }
 

@@ -14,7 +14,7 @@ from seahub.api2.authentication import TokenAuthentication
 from seahub.api2.throttling import UserRateThrottle
 from seahub.api2.utils import api_error
 from seahub.base.accounts import User
-from seahub.signals import repo_deleted
+from seahub.signals import repo_deleted, repo_transfer
 from seahub.views import get_system_default_repo_id
 from seahub.admin_log.signals import admin_operation
 from seahub.admin_log.models import REPO_CREATE, REPO_DELETE, REPO_TRANSFER
@@ -379,6 +379,9 @@ class AdminLibrary(APIView):
 
             # transfer repo
             seafile_api.set_repo_owner(repo_id, new_owner)
+            repo_transfer.send(sender=None, org_id=-1,
+                    repo_owner=repo_owner, to_user=new_owner, repo_id=repo_id,
+                    repo_name=repo.name)
 
             # reshare repo to user
             for shared_user in shared_users:

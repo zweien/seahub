@@ -325,7 +325,7 @@ class LibContentContainer extends React.Component {
         </div>
         {this.props.isDirentDetailShow && 
           <Fragment>
-            <div className="cur-view-detail">
+            <div style={{width:'350px'}} className="cur-view-detail">
               {(this.props.path === '/' && !this.state.currentDirent) ? 
                 <LibDetail 
                   currentRepo={this.props.currentRepoInfo}

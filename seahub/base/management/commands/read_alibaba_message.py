@@ -11,7 +11,7 @@ from django.core.management.base import BaseCommand
 
 from seaserv import seafile_api, ccnet_api
 from seahub.utils import clear_token
-from seahub.signals import repo_transfered
+from seahub.signals import repo_transfer
 from seahub.share.utils import share_dir_to_user, share_dir_to_group
 from seahub.share.models import ExtraSharePermission, FileShare
 from seahub.profile.models import Profile
@@ -341,9 +341,9 @@ class Command(BaseCommand):
                         print '\ntransfer repo %s with unexpired share link' % repo.id
                         logging.error('transfer repo %s with unexpired share link' % repo.id)
                         seafile_api.set_repo_owner(repo.id, super_ccnet_email)
-                        repo_transfered.send(sender=None, org_id=-1, operator='Administrator',
-                                repo_id=repo_id, from_user=leave_ccnet_email,
-                                to_user=super_ccnet_email)
+                        repo_transfer.send(sender=None, org_id=-1,
+                                repo_owner=leave_ccnet_email, to_user=super_ccnet_email, repo_id=repo_id,
+                                repo_name=repo.name)
 
                 # transfer repo to super
                 # reshare repo public

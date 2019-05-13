@@ -1624,6 +1624,10 @@ class RepoOwner(APIView):
                         seafile_api.transfer_repo_to_group(repo_id, group_id, PERMISSION_READ_WRITE)
                     else:
                         seafile_api.set_repo_owner(repo_id, new_owner)
+                        repo_transfer.send(sender=None, org_id=-1,
+                            repo_owner=repo_owner, to_user=new_owner, repo_id=repo_id,
+                            repo_name=repo.name)
+
         except SearpcError as e:
             logger.error(e)
             error_msg = 'Internal Server Error'

@@ -24,6 +24,7 @@ from seahub.institutions.models import Institution
 from seahub.utils import is_valid_username, is_org_context
 from seahub.utils.file_size import get_file_size_unit
 from seahub.group.utils import is_group_member
+from seahub.signals import repo_transfer
 
 
 logger = logging.getLogger(__name__)
@@ -91,6 +92,9 @@ class Account(APIView):
             # transfer owned repos to new user
             for r in seafile_api.get_owned_repo_list(from_user):
                 seafile_api.set_repo_owner(r.id, user2.username)
+                repo_transfer.send(sender=None, org_id=-1,
+                    repo_owner=from_user, to_user=to_user, repo_id=r.id,
+                    repo_name=r.name)
 
             # transfer joined groups to new user
             for g in seaserv.get_personal_groups_by_user(from_user):

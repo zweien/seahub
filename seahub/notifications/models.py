@@ -892,7 +892,8 @@ from seahub.invitations.signals import accept_guest_invitation_successful
 from seahub.drafts.signals import comment_draft_successful, \
         request_reviewer_successful
 from seahub.alibaba.models import AlibabaMessageQueue, AlibabaProfile, \
-        ALIBABA_MESSAGE_TOPIC_PUSH_MESSAGE, ALIBABA_DINGDING_TALK_URL
+        ALIBABA_MESSAGE_TOPIC_PUSH_MESSAGE, ALIBABA_DINGDING_TALK_URL, \
+        AlibabaRepoOwnerChain
 
 @receiver(upload_file_successful)
 def add_upload_file_msg_cb(sender, **kwargs):
@@ -1491,3 +1492,12 @@ def repo_transfer_cb(sender, **kwargs):
 
     detail = repo_transfer_msg_to_json(org_id, repo_owner, repo_id, repo_name)
     UserNotification.objects.add_repo_transfer_msg(to_user, detail)
+
+    operator = kwargs['repo_owner']
+    from_user = kwargs['repo_owner']
+    to_user = kwargs['to_user']
+    try:
+        AlibabaRepoOwnerChain.objects.add_repo_transfer_chain(repo_id,
+                operator, from_user, to_user)
+    except Exception as e:
+        logger.error(e)
