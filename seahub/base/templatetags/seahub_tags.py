@@ -27,6 +27,14 @@ from seahub.utils import normalize_cache_key, CMMT_DESC_PATT
 from seahub.utils.html import avoid_wrapping
 from seahub.utils.file_size import get_file_size_unit
 
+# Start Alibaba Group related
+import logging
+from seahub.alibaba.models import AlibabaProfile
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+# End Alibaba Group related
+
 register = template.Library()
 
 @register.filter(name='tsstr_sec')
@@ -358,11 +366,15 @@ def email2nickname(value):
     if cached_nickname and cached_nickname.strip():
         return cached_nickname.strip()
 
-    profile = get_first_object_or_none(Profile.objects.filter(user=value))
-    if profile is not None and profile.nickname and profile.nickname.strip():
-        nickname = profile.nickname.strip()
+    profile = AlibabaProfile.objects.get_profile(value)
+    if profile is not None:
+        if profile.nick_name:
+            nickname = '%s (%s)' % (profile.emp_name, profile.nick_name)
+        else:
+            nickname = '%s' % profile.emp_name
     else:
-        nickname = value.split('@')[0]
+        logger.warn('No alibaba profile found for user: %s' % value)
+        return ''
 
     cache.set(key, nickname, NICKNAME_CACHE_TIMEOUT)
     return nickname
@@ -373,8 +385,9 @@ def email2contact_email(value):
     Return contact_email if it exists and it's not an empty string,
     otherwise return username(login email).
     """
-    if not value:
-        return ''
+    # Start Alibaba Group related
+    return ''     # hide contact email
+    # End Alibaba Group related
 
     key = normalize_cache_key(value, CONTACT_CACHE_PREFIX)
     contact_email = cache.get(key)
