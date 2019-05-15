@@ -175,7 +175,7 @@ class TreeNodeView extends React.Component {
       return [NEW_FOLDER, NEW_FILE, COPY, MOVE, RENAME, DELETE];
     }
     
-    return [RENAME, DELETE, COPY, MOVE, OPEN_VIA_CLIENT];
+    return [RENAME, DELETE, COPY, MOVE];
   }
 
   renderChildren = () => {

@@ -418,9 +418,9 @@ class DirentGridView extends React.Component{
     let { RENAME, MOVE, COPY, PERMISSION, OPEN_VIA_CLIENT, LOCK, UNLOCK, COMMENT, HISTORY, ACCESS_LOG } = TextTranslation;
     if (type === 'dir' && permission === 'rw') {
       if (can_set_folder_perm) {
-        menuList = [...contextmenuList, RENAME, MOVE, COPY, 'Divider', PERMISSION, 'Divider', OPEN_VIA_CLIENT];
+        menuList = [...contextmenuList, RENAME, MOVE, COPY, 'Divider', PERMISSION];
       } else {
-        menuList = [...contextmenuList, RENAME, MOVE, COPY, 'Divider', OPEN_VIA_CLIENT];
+        menuList = [...contextmenuList, RENAME, MOVE, COPY];
       }
       return menuList;
     }
@@ -454,8 +454,6 @@ class DirentGridView extends React.Component{
       if (isPro && fileAuditEnabled) {
         menuList.push(ACCESS_LOG);
       }
-      menuList.push('Divider');
-      menuList.push(OPEN_VIA_CLIENT);
       return menuList;
     }
 

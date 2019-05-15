@@ -203,7 +203,7 @@ class TreeView extends React.Component {
     if (node.object.type === 'dir') {
       menuList = [NEW_FOLDER, NEW_FILE, COPY, MOVE, RENAME, DELETE];
     } else {
-      menuList = [RENAME, DELETE, COPY, MOVE, OPEN_VIA_CLIENT];
+      menuList = [RENAME, DELETE, COPY, MOVE];
     } 
 
     return menuList;

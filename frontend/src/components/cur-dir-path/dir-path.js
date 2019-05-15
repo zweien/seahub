@@ -91,12 +91,6 @@ class DirPath extends React.Component {
           <a className="path-link" data-path="/" onClick={this.onPathClick}>{repoName}</a>
         }
         {pathElem}
-        {this.props.isViewFile && 
-          <InternalLinkDialog 
-            repoID={this.props.repoID}
-            path={this.props.currentPath}
-          />
-        }
         {(this.props.isViewFile && fileTags.length !== 0) && 
           <span id='column-mode-file-tags' className="tag-list tag-list-stacked align-middle ml-1">
             {fileTags.map((fileTag, index) => {

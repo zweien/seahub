@@ -39,7 +39,6 @@ class FileInfo extends React.PureComponent {
             aria-label={starredText}
             onClick={this.toggleStar}>
           </a>
-          <InternalLinkDialog repoID={repoID} path={filePath} />
           {(isPro && isLocked) &&
             <img className="file-locked-icon" width="16"
               src={`${mediaUrl}img/file-locked-32.png`}
