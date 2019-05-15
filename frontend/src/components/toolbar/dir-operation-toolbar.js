@@ -184,7 +184,6 @@ class DirOperationToolbar extends React.Component {
             <li className="dropdown-item" onClick={this.onCreateFolderToggle}>{gettext('New Folder')}</li>
             <li className="dropdown-item" onClick={this.onCreateFileToggle}>{gettext('New File')}</li>
             <li className="dropdown-divider"></li>
-            <li className="dropdown-item" onClick={this.onCreateMarkdownToggle}>{gettext('New Markdown File')}</li>
             <li className="dropdown-item" onClick={this.onCreateExcelToggle}>{gettext('New Excel File')}</li>
             <li className="dropdown-item" onClick={this.onCreatePPTToggle}>{gettext('New PowerPoint File')}</li>
             <li className="dropdown-item" onClick={this.onCreateWordToggle}>{gettext('New Word File')}</li>
