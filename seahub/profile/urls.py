@@ -2,6 +2,8 @@
 from django.conf.urls import url, include
 from .views import *
 
+from seahub.alibaba.views import alibaba_user_profile
+
 urlpatterns = [
 #    url(r'^list_user/$', 'list_userids', name="list_userids"),
     url(r'^$', edit_profile, name="edit_profile"),
@@ -13,5 +15,5 @@ urlpatterns = [
 
 # Move the catch-all pattern to the end.
 urlpatterns += [
-    url(r'^(?P<username>[^/]*)/$', user_profile, name="user_profile"),
+    url(r'^(?P<username>[^/]*)/$', alibaba_user_profile, name="user_profile"),
 ]

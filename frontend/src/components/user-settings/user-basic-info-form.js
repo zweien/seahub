@@ -12,11 +12,23 @@ class UserBasicInfoForm extends React.Component {
   constructor(props) {
     super(props);
     const {
+      emp_name,
+      nick_name,
+      post_name,
+      post_name_en,
+      dept_name,
+      dept_name_en,
       contact_email,
       login_id,
       name
     } = this.props.userInfo;
     this.state = {
+      emp_name: emp_name,
+      nick_name: nick_name,
+      post_name: post_name,
+      post_name_en: post_name_en,
+      dept_name: dept_name,
+      dept_name_en: dept_name_en,
       contactEmail: contact_email,
       loginID: login_id,
       name: name
@@ -48,42 +60,48 @@ class UserBasicInfoForm extends React.Component {
 
   render() {
     const {
+      emp_name,
+      nick_name,
+      post_name,
+      post_name_en,
+      dept_name,
+      dept_name_en,
       contactEmail,
       loginID,
       name
     } = this.state;
+    let isZHCN = window.app.config.lang === 'zh-cn';
 
     return (
       <form action="" method="post" onSubmit={this.handleSubmit}>
 
         <div className="form-group row">
-          <label className="col-sm-1 col-form-label" htmlFor="name">{nameLabel}</label>
+          <label className="col-sm-1 col-form-label" htmlFor="name">{isZHCN ? '姓名：' : 'Name:' }</label>
           <div className="col-sm-5">
-            <input className="form-control" id="name" type="text" name="nickname" value={name} disabled={!enableUpdateUserInfo} onChange={this.handleNameInputChange} />
+            <input className="form-control" id="name" type="text" name="name" value={emp_name} disabled />
           </div>
         </div>
 
-        {loginID && (
-          <div className="form-group row">
-            <label className="col-sm-1 col-form-label" htmlFor="user-name">{gettext('Username:')}</label>
-            <div className="col-sm-5">
-              <input className="form-control" id="user-name" type="text" name="username" value={loginID} disabled={true} readOnly={true} />
-            </div>
-            <p className="col-sm-5 m-0 input-tip">{gettext('You can use this field at login.')}</p>
+        <div className="form-group row">
+          <label className="col-sm-1 col-form-label" htmlFor="nickname">{isZHCN ? '花名：' : 'Nickname:'}</label>
+          <div className="col-sm-5">
+            <input className="form-control" id="nickname" type="text" name="nickname" value={nick_name} disabled />
           </div>
-        )}
+        </div>
 
-        {(contactEmail || enableUserSetContactEmail) && (
-          <div className="form-group row">
-            <label className="col-sm-1 col-form-label" htmlFor="contact-email">{gettext('Contact Email:')}</label>
-            <div className="col-sm-5">
-              <input className="form-control" id="contact-email" type="text" name="contact_email" value={contactEmail} disabled={!enableUserSetContactEmail} readOnly={!enableUserSetContactEmail} onChange={this.handleContactEmailInputChange} />
-            </div>
-            <p className="col-sm-5 m-0 input-tip">{gettext('Your notifications will be sent to this email.')}</p>
+        <div className="form-group row">
+          <label className="col-sm-1 col-form-label" htmlFor="position">{isZHCN ? '职位：' : 'Position:'}</label>
+          <div className="col-sm-5">
+            <input className="form-control" id="position" type="text" name="position" value={isZHCN ? post_name : post_name_en} disabled />
           </div>
-        )}
+        </div>
 
-        <button type="submit" className="btn btn-outline-primary offset-sm-1" disabled={!enableUpdateUserInfo}>{gettext('Submit')}</button>
+        <div className="form-group row">
+          <label className="col-sm-1 col-form-label" htmlFor="department">{isZHCN ? '部门：' : 'Deparment'}</label>
+          <div className="col-sm-5">
+            <input className="form-control" id="department" type="text" name="department" value={isZHCN ? dept_name : dept_name_en} disabled />
+          </div>
+        </div>
       </form>
     );
   }

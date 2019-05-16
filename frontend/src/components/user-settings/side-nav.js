@@ -1,4 +1,5 @@
 import React from 'react';
+import { gettext } from '../../utils/constants';
 
 class SideNav extends React.Component {
 
@@ -8,11 +9,9 @@ class SideNav extends React.Component {
 
   render() {
     return (
-      <ul className="nav flex-column user-setting-nav">
-        {this.props.data.map((item, index) => {
-          return item.show ?
-            <li key={index} className={`nav-item ${this.props.curItemID == item.href.substr(1) && 'active'}`}><a className="nav-link" href={item.href}>{item.text}</a></li> : null;
-        })}
+      <ul className="list-group list-group-flush">
+        <li className="list-group-item"><a href="#user-basic-info">{gettext('Profile')}</a></li>
+        <li className="list-group-item"><a href="#lang-setting">{gettext('Language')}</a></li>
       </ul>
     );
   }

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load avatar_tags i18n seahub_tags %}
+
+{% block sub_title %}{% trans "Profile" %} - {% endblock %}
+{% block header_css_class %}d-flex{% endblock %}
+
+{% block main_panel %}
+
+<div id="user-profile">
+
+<img src="{{ personal_photo_url }}" title="{{ emp_name }}" width="64" height="64" class="avatar">
+
+<p title="{{ emp_name }}" class="user-profile-nickname ellipsis">{{ emp_name }}</p>
+<p title="{{ nick_name }}" class="user-profile-nickname ellipsis">{{ nick_name }}</p>
+
+<ul>
+    <li title="{{ work_no }}" class="user-profile-info ellipsis">
+        <span class="vam">{{ work_no }}</span>
+    </li>
+
+    {% if request.LANGUAGE_CODE == 'zh-cn' or request.LANGUAGE_CODE == 'zh-tw' %}
+
+    <li title="{{ post_name }}" class="user-profile-info ellipsis">
+        <span class="vam">{{ post_name }}</span>
+    </li>
+    <li title="{{ dept_name }}" class="user-profile-info ellipsis">
+        <span class="vam">{{ dept_name }}</span>
+    </li>
+
+    {% else %}
+    <li title="{{ post_name_en }}" class="user-profile-info ellipsis">
+        <span class="vam">{{ post_name_en }}</span>
+    </li>
+    <li title="{{ dept_name_en }}" class="user-profile-info ellipsis">
+        <span class="vam">{{ dept_name_en }}</span>
+    </li>
+    {% endif %}
+</ul>
+</div>
+
+{% endblock %}

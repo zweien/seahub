@@ -128,20 +128,7 @@ class Settings extends React.Component {
                   <UserAvatarForm  />
                   {this.state.userInfo && <UserBasicInfoForm userInfo={this.state.userInfo} updateUserInfo={this.updateUserInfo} />}
                 </div>
-                {canUpdatePassword &&
-                <div id="update-user-passwd" className="setting-item">
-                  <h3 className="setting-item-heading">{gettext('Password')}</h3>
-                  <a href={`${siteRoot}accounts/password/change/`} className="btn btn-outline-primary">{passwordOperationText}</a>
-                </div>
-                }
-                {enableWebdavSecret && <WebdavPassword />}
-                {enableAddressBook && this.state.userInfo && 
-                <ListInAddressBook userInfo={this.state.userInfo} updateUserInfo={this.updateUserInfo} />}
                 <LanguageSetting />
-                {isPro && <EmailNotice />}
-                {twoFactorAuthEnabled && <TwoFactorAuthentication />}
-                {enableWechatWork && <SocialLogin />}
-                {enableDeleteAccount && <DeleteAccount />}
               </div>
             </div>
           </div>

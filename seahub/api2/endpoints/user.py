@@ -16,6 +16,8 @@ from seahub.base.templatetags.seahub_tags import email2nickname, \
         email2contact_email
 from seahub.profile.models import Profile, DetailedProfile
 from seahub.settings import ENABLE_UPDATE_USER_INFO, ENABLE_USER_SET_CONTACT_EMAIL
+from seahub.avatar.util import get_alibaba_user_avatar_url
+from seahub.alibaba.models import AlibabaProfile
 
 logger = logging.getLogger(__name__)
 json_content_type = 'application/json; charset=utf-8'
@@ -63,6 +65,18 @@ class User(APIView):
     def get(self, request):
         email = request.user.username
         info = self._get_user_info(email)
+
+        # return alibaba user profile info
+        profile = AlibabaProfile.objects.get_profile(email)
+        if profile:
+            info['personal_photo_url'] = get_alibaba_user_avatar_url(email)
+            info['emp_name'] = profile.emp_name or ''
+            info['nick_name'] = profile.nick_name or ''
+            info['post_name'] = profile.post_name or ''
+            info['post_name_en'] = profile.post_name_en or ''
+            info['dept_name'] = profile.dept_name or ''
+            info['dept_name_en'] = profile.dept_name_en or ''
+
         return Response(info)
 
     def put(self, request):
