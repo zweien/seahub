@@ -185,6 +185,12 @@ class MainSideNav extends React.Component {
           <h3 className="sf-heading">{gettext('Tools')}</h3>
           <ul className="nav nav-pills flex-column nav-container">
             <li className="nav-item">
+              <Link className={`nav-link ellipsis ${this.getActiveClass('desktop-syncing-clients')}`} to={siteRoot + 'desktop-syncing-clients/'} title={gettext('Clients')} onClick={() => this.tabItemClick('desktop-syncing-clients')}>
+                <span className="sf2-icon-download" aria-hidden="true"></span>
+                <span className="nav-text">{gettext('Clients')}</span>
+              </Link>
+            </li>
+            <li className="nav-item">
               <Link className={`nav-link ellipsis ${this.getActiveClass('starred')}`} to={siteRoot + 'starred/'} title={gettext('Favorites')} onClick={() => this.tabItemClick('starred')}>
                 <span className="sf2-icon-star" aria-hidden="true"></span>
                 <span className="nav-text">{gettext('Favorites')}</span>

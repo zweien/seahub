@@ -214,6 +214,7 @@ urlpatterns = [
 
     ### React ###
     url(r'^dashboard/$', react_fake_view, name="dashboard"),
+    url(r'^desktop-syncing-clients/$', react_fake_view, name="desktop_syncing_clients"),
     url(r'^starred/$', react_fake_view, name="starred"),
     url(r'^linked-devices/$', react_fake_view, name="linked_devices"),
     url(r'^share-admin-libs/$', react_fake_view, name="share_admin_libs"),

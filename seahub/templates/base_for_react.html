@@ -90,6 +90,15 @@
             canAddPublicRepo: {% if can_add_public_repo %} true {% else %} false {% endif %},
             canInvitePeople: {% if enable_guest_invitation and user.permissions.can_invite_guest %} true {% else %} false {% endif %},
 
+            windowsClientPublicDownloadUrl: "{{ windows_client_public_download_url }}",
+            windowsClientVersion: "{{ windows_client_version }}",
+            appleClientPublicDownloadUrl: "{{ apple_client_public_download_url }}",
+            appleClientVersion: "{{ apple_client_version }}",
+            windowsClientPublicDownloadUrlEn: "{{ windows_client_public_download_url_en }}",
+            windowsClientVersionEn: "{{ windows_client_version_en }}",
+            appleClientPublicDownloadUrlEn: "{{ apple_client_public_download_url_en }}",
+            appleClientVersionEn: "{{ apple_client_version_en }}",
+
             {% if request.user.is_authenticated and request.cur_note %}
             curNoteMsg: '{{ request.cur_note.message|urlize }}',
             curNoteID: '{{ request.cur_note.id }}',
