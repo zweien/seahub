@@ -50,12 +50,20 @@ define([
             $form.modal();
             $('#simplemodal-container').css({'height':'auto'});
 
+            var p_l = '';
+            if (app.pageOptions.language_code == 'zh-cn') {
+                p_l = '工号、姓名或者花名';
+            }
+            else {
+                p_l = 'Employee ID, employee name or nick name';
+            }
+          
             $('[name="library_owner"]', $form).select2($.extend(
                 Common.contactInputOptionsForSelect2(), {
                 width: '268px',
                 containerCss: {'margin-bottom': '5px'},
                 maximumSelectionSize: 1,
-                placeholder: gettext("Search user or enter email and press Enter"), // to override 'placeholder' returned by `Common.conta...`
+                placeholder: p_l,
                 formatSelectionTooBig: gettext("You cannot select any more choices")
             }));
 

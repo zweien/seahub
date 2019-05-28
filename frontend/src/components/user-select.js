@@ -37,12 +37,16 @@ class UserSelect extends React.Component {
         for (let i = 0 ; i < res.data.users.length; i++) {
           const item = res.data.users[i];
           let obj = {};
-          obj.value = item.name;
-          obj.email = item.email;
+          obj.value = item.emp_name;
+          obj.email = item.uid;
+          let emp_info = item.emp_name + '(' + item.nick_name +')' + '-' + item.work_no + '-' + item.post_name + '-' + item.dept_name;
+          if(item.nick_name == ''){
+            emp_info = item.emp_name + '-' + item.work_no + '-' + item.post_name + '-' + item.dept_name;
+          }
           obj.label =
             <React.Fragment>
-              <img src={item.avatar_url} className="select-module select-module-icon avatar" alt=""/>
-              <span className='select-module select-module-name'>{item.name}</span>
+              <img src={item.personal_photo_url} className="select-module select-module-icon avatar" alt=""/>
+              <span className='select-module select-module-name'>{emp_info}</span>
             </React.Fragment>;
           this.options.push(obj);
         }

@@ -79,6 +79,7 @@ class ManageMembersDialog extends React.Component {
   }
 
   render() {
+    let isZHCN = window.app.config.lang === 'zh-cn';
     return (
       <Modal isOpen={true} toggle={this.toggle}>
         <ModalHeader toggle={this.toggle}>{gettext('Manage group members')}</ModalHeader>
@@ -86,7 +87,7 @@ class ManageMembersDialog extends React.Component {
           <p>{gettext('Add group member')}</p>
           <div className='add-members'>
             <UserSelect
-              placeholder={gettext('Select users...')}
+              placeholder={isZHCN ? '工号、姓名或者花名' : 'Employee ID, employee name or nick name'}
               onSelectChange={this.onSelectChange}
               ref="userSelect"
               isMulti={true}

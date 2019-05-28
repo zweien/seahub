@@ -721,8 +721,16 @@ define([
                 url = _this.getUrl({name: 'search_user'});
             }
 
+            var p_l = '';
+            if (app.pageOptions.language_code == 'zh-cn') {
+                p_l = '工号、姓名或者花名';
+            }
+            else {
+                p_l = 'Employee ID, employee name or nick name';
+            }
+
             return {
-                placeholder: gettext("Search users or enter emails and press Enter"),
+                placeholder: p_l,
 
                 // with 'tags', the user can directly enter, not just select
                 // tags need `<input type="hidden" />`, not `<select>`
@@ -750,13 +758,18 @@ define([
 
                         for (var i = 0, len = users.length; i < len; i++) {
                             user_list.push({ // 'id' & 'text' are required by the plugin
-                                "id": users[i].email,
+                                "id": users[i].uid,
+                                "uid": users[i].uid,
                                 // for search. both name & email can be searched.
                                 // use ' '(space) to separate name & email
-                                "text": users[i].name + ' ' + users[i].contact_email,
-                                "avatar_url": users[i].avatar_url,
-                                "contact_email": users[i].contact_email,
-                                "name": users[i].name
+                                "avatar_url": users[i].personal_photo_url,
+                                "name": users[i].emp_name,
+                                "nick_name": users[i].nick_name,
+                                "work_no": users[i].work_no,
+                                "post_name": users[i].post_name,
+                                "dept_name": users[i].dept_name
+                                // TODO
+                                //"text": users[i].emp_name + ' ' + users[i].contact_email,
                             });
                         }
 
@@ -768,8 +781,12 @@ define([
 
                 // format items shown in the drop-down menu
                 formatResult: function(item) {
-                    if (item.avatar_url) {
-                        return '<img src="' + item.avatar_url + '" width="32" height="32" class="avatar"><span class="text ellipsis">' + _this.HTMLescape(item.name) + '<br />' + _this.HTMLescape(item.contact_email) + '</span>';
+                    if (item.uid) {
+                        if (item.nick_name) {
+                            return '<img src="' + item.avatar_url + '" width="32" height="32" class="avatar"><span class="text ellipsis">' + _this.HTMLescape(item.name) + '(' + _this.HTMLescape(item.nick_name) + ')-' + _this.HTMLescape(item.work_no) + '-' + _this.HTMLescape(item.post_name) + '<br />' + _this.HTMLescape(item.dept_name) + '</span>';
+                        } else {
+                            return '<img src="' + item.avatar_url + '" width="32" height="32" class="avatar"><span class="text ellipsis">' + _this.HTMLescape(item.name) + '-' + _this.HTMLescape(item.work_no) + '-' + _this.HTMLescape(item.post_name) + '<br />' + _this.HTMLescape(item.dept_name) + '</span>';
+                        }
                     } else {
                         return; // if no match, show nothing
                     }

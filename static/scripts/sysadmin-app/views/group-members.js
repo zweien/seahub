@@ -34,11 +34,19 @@ define([
             $form.modal();
             $('#simplemodal-container').css({'height':'auto', 'width':'auto'});
 
+            var p_l = '';
+            if (app.pageOptions.language_code == 'zh-cn') {
+                p_l = '工号、姓名或者花名';
+            }
+            else {
+                p_l = 'Employee ID, employee name or nick name';
+            }
+          
             $('[name="email"]', $form).select2($.extend(
                 Common.contactInputOptionsForSelect2(), {
                 width: '275px',
                 containerCss: {'margin-bottom': '5px'},
-                placeholder: gettext("Search users or enter emails and press Enter")
+                placeholder: p_l
             }));
 
             $form.on('submit', function() {
@@ -73,7 +81,7 @@ define([
                         var err_str = '';
                         if (data.failed.length > 0) {
                             $(data.failed).each(function(index, item) {
-                                err_str += Common.HTMLescape(item.email) + ': ' + Common.HTMLescape(item.error_msg) + '<br />';
+                                err_str += Common.HTMLescape(item.error_msg) + '<br />';
                             });
                             $error.html(err_str).show();
                             Common.enableButton($submitBtn);

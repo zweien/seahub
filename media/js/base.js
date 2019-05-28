@@ -372,12 +372,18 @@ function userInputOPtionsForSelect2(user_search_url) {
                 var user_list = [], users = data['users'];
                 for (var i = 0, len = users.length; i < len; i++) {
                     user_list.push({ // 'id' & 'text' are required by the plugin
-                        "id": users[i].email,
+                        "id": users[i].uid,
+                        "uid": users[i].uid,
                         // for search. both name & email can be searched.
                         // use ' '(space) to separate name & email
-                        "text": users[i].name + ' ' + users[i].email,
-                        "avatar_url": users[i].avatar_url,
-                        "name": users[i].name
+                        "avatar_url": users[i].personal_photo_url,
+                        "name": users[i].emp_name,
+                        "nick_name": users[i].nick_name,
+                        "work_no": users[i].work_no,
+                        "post_name": users[i].post_name,
+                        "dept_name": users[i].dept_name
+                        // TODO
+                        //"text": users[i].emp_name + ' ' + users[i].contact_email,
                     });
                 }
                 return {
@@ -388,8 +394,12 @@ function userInputOPtionsForSelect2(user_search_url) {
 
         // format items shown in the drop-down menu
         formatResult: function(item) {
-            if (item.avatar_url) {
-                return '<img src="' + item.avatar_url + '" width="32" height="32" class="avatar">' + '<span class="text ellipsis">' + HTMLescape(item.name) + '<br />' + HTMLescape(item.id) + '</span>';
+            if (item.uid) {
+                if (item.nick_name) {
+                    return '<img src="' + item.avatar_url + '" width="32" height="32" class="avatar"><span class="text ellipsis">' + HTMLescape(item.name) + '(' + HTMLescape(item.nick_name) + ')-' + HTMLescape(item.work_no) + '-' + HTMLescape(item.post_name) + '<br />' + HTMLescape(item.dept_name) + '</span>';
+                } else {
+                    return '<img src="' + item.avatar_url + '" width="32" height="32" class="avatar"><span class="text ellipsis">' + HTMLescape(item.name) + '-' + HTMLescape(item.work_no) + '-' + HTMLescape(item.post_name) + '<br />' + HTMLescape(item.dept_name) + '</span>';
+                }
             } else {
                 return; // if no match, show nothing
             }

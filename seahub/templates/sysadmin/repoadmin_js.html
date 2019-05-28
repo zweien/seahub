@@ -16,7 +16,11 @@ $('.repo-transfer-btn').on('click', function(){
     $('[name="email"]', form).select2($.extend({
         width: '268px',
         maximumSelectionSize: 1,
-        placeholder: "{% trans "Search user or enter email and press Enter" %}",
+        {% if request.LANGUAGE_CODE == 'zh-cn' or request.LANGUAGE_CODE == 'zh-tw' %}
+        placeholder: "工号、姓名或者花名",
+        {% else %}
+        placeholder: "Employee ID, employee name or nick name",
+        {% endif %}
         formatInputTooShort: "{% trans "Please enter 1 or more character" %}",
         formatNoMatches: "{% trans "No matches" %}",
         formatSearching: "{% trans "Searching..." %}",
