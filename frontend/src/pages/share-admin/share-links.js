@@ -60,7 +60,7 @@ class Content extends Component {
 
   render() {
     const { loading, errorMsg, items, sortBy, sortOrder } = this.props;
-
+    let isZHCN = window.app.config.lang === 'zh-cn';
     if (loading) {
       return <span className="loading-icon loading-tip"></span>;
     } else if (errorMsg) {
@@ -68,8 +68,8 @@ class Content extends Component {
     } else {
       const emptyTip = (
         <EmptyTip>
-          <h2>{gettext('You don\'t have any share links')}</h2>
-          <p>{gettext('You can generate a share link for a folder or a file. Anyone who receives this link can view the folder or the file online.')}</p>
+          <h2>{isZHCN ? '您还没有共享链接' : 'You don\'t have any shared link yet'}</h2>
+          <p>{isZHCN ? '您可以给文件生成共享链接，别人通过这个链接就可以在线查看或者编辑该文件' : 'You can generate a shared link for a file. Anyone who receives the link can view or edit the file online.'}</p>
         </EmptyTip>
       );
 
