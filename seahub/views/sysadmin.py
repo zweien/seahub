@@ -1110,6 +1110,7 @@ def user_toggle_role(request, email):
                             content_type=content_type)
 
 def send_user_reset_email(request, email, password):
+    logger.info('##### 2 send_user_reset_email #####')
     """
     Send email when reset user password.
     """
@@ -1125,6 +1126,7 @@ def send_user_reset_email(request, email, password):
 @sys_staff_required
 @require_POST
 def user_reset(request, email):
+    logger.info('##### 1 user_reset #####')
     """Reset password for user."""
     try:
         user = User.objects.get(email=email)

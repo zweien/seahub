@@ -72,6 +72,8 @@ else:
             return None
     seafevents_api = RPCProxy()
 
+logger = logging.getLogger(__name__)
+
 def is_pro_version():
     if seahub.settings.DEBUG:
         if hasattr(seahub.settings, 'IS_PRO_VERSION') \
@@ -915,6 +917,7 @@ def send_html_email(subject, con_template, con_context, from_email, to_email,
                     reply_to=None):
     """Send HTML email
     """
+    logger.info('##### 3 send_html_email #####')
 
     # get logo path
     logo_path = LOGO_PATH
