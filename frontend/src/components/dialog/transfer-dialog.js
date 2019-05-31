@@ -81,11 +81,11 @@ class TransferDialog extends React.Component {
               onChange={this.handleSelectChange}
             />
           }
-          {isPro &&
+          {/*isPro &&
             <span className="action-link" onClick={this.onClick}>{this.state.transferToUser ?
               gettext('Transfer to department'): gettext('Transfer to user')}
             </span>
-          }
+            */}
         </ModalBody>
         <ModalFooter>
           <Button color="secondary" onClick={this.props.toggleDialog}>{gettext('Cancel')}</Button>
