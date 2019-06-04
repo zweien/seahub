@@ -291,7 +291,21 @@ class FileView(APIView):
                 return api_error(status.HTTP_500_INTERNAL_SERVER_ERROR, error_msg)
 
             if is_locked and not locked_by_me:
-                error_msg = _("File is locked")
+                lock_info = seafile_api.get_lock_info(repo_id, path)
+                lock_owner = lock_info.user
+
+                if lock_owner == ONLINE_OFFICE_LOCK_OWNER:
+                    if request.LANGUAGE_CODE == 'zh-cn':
+                        error_msg = u"文件正在被编辑或2分钟之内被编辑过，暂时无法重命名，请稍后再试"
+                    else:
+                        error_msg = u"The file has been being edited within 2 minutes, it can't be renamed at the moment, please try again later"
+                else:
+                    if request.LANGUAGE_CODE == 'zh-cn':
+                        error_msg = u"文件已被 %s 锁定，无法重命名" % email2nickname(lock_owner)
+                    else:
+                        error_msg = u"The file is locked by %s, it can't be renamed" % email2nickname(lock_owner)
+
+
                 return api_error(status.HTTP_403_FORBIDDEN, error_msg)
 
             # rename file

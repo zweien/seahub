@@ -807,10 +807,8 @@ class LibContentView extends React.Component {
     } else {
       seafileAPI.renameFile(repoID, path, newName).then(() => {
         this.renameItemAjaxCallback(path, newName);
-      }).catch(() => {
-        let name = Utils.getFileName(path);
-        var msg = gettext('Renaming {name} failed').replace('{name}', name);
-        toaster.danger(msg);
+      }).catch((error) => {
+        toaster.danger(error.response.data.error_msg);
       });
     }
   }
