@@ -27,6 +27,7 @@ define([
                 'mods_enabled': app.pageOptions.user_mods_enabled,
                 'show_share_admin': false, // show 'share admin' nav list or not
                 'can_add_repo': app.pageOptions.can_add_repo,
+                'is_file_link_reviser': app.pageOptions.is_file_link_reviser,
                 'can_generate_share_link': app.pageOptions.can_generate_share_link,
                 'can_generate_upload_link': app.pageOptions.can_generate_upload_link
             };

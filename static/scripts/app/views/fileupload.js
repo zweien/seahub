@@ -278,6 +278,8 @@ define([
                 $(files).each(function() {
                     file_names.push(this.get('obj_name'));
                 });
+                /*************** comment out 'update' function for ping-an ******************/
+                /*
                 if (!dirents.is_system_library && file_names.indexOf(file.name) != -1) { // file with the same name already exists in the dir
                     var confirm_title = gettext("Replace file {filename}?")
                         .replace('{filename}', '<span class="op-target">' + Common.HTMLescape(file.name) + '</span>');
@@ -318,8 +320,9 @@ define([
                         $.modal.close();
                     });
                 } else {
+                */
                     upload_file();
-                }
+                //}
                 return false;
             })
             .bind('fileuploadprogressall', function(e, data) {

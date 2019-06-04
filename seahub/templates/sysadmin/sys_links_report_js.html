@@ -1,0 +1,77 @@
+{% load i18n %}
+$(".view-link").click(function() {
+    var link = $(this).attr('data-link');
+    $('#shared-link').before('<p class="hide">' + link + '</p>')
+    .val(link).css('width', $('#shared-link').prev().width() + 2)
+    .modal({focus:false});
+    $('#shared-link').prev().remove();
+});
+
+$('.stats').click(function() {
+    var $container = $('#shared-link-stats');
+    var token = $(this).attr('data-token');
+
+    $container.css({'width':600, 'height':300, 'overflow':'auto'}).modal();
+
+    $.ajax({
+        url: '{% url "ajax_get_link_status" %}',
+        data: {'token': token},
+        cache: false,
+        dataType: 'json',
+        success: function(data) {
+            var str = '';
+            for (var i = 0, len = data.status.length; i < len; i++) {
+                str += '<li>' + HTMLescape(data.status[i]) + '</li>';
+            }
+            $container.html('<ul>' + str + '</ul>');
+
+            if (data.pass_verify) {
+                str = '<p>该文件下载链接已通过 ' + '{{email_host_user|escapejs}}' + '外发至邮箱: ' + HTMLescape(data.receivers.join(', ')) + ' (发送于' + data.sent_at + ')</p>';
+
+                $container.append(str);
+            }
+        },
+        error: function(xhr) {
+            var msg;
+            if (xhr.responseText) {
+                msg = $.parseJSON(xhr.responseText).error;
+            } else {
+                msg = "{% trans "Failed. Please check the network." %}";
+            }
+            $container.html('<p class="error">' + msg + '</p>');
+        }
+    });
+
+    return false;
+});
+
+$(".check-upload-info").click(function() {
+    var upload_info_popup = $('#upload-info'),
+        upload_link_id = $(this).attr('data-link_id');
+
+    upload_info_popup.modal({appendTo:'#main'});
+    $('#simplemodal-container').css({'height':'auto', 'width':'500px'});
+
+    $.ajax({
+        url: '{% url 'ajax_get_upload_files_info' %}',
+        dataType: 'json',
+        cache: 'false',
+        data: {
+            'upload_link_id': upload_link_id,
+        },
+        success: function(data) {
+            upload_info_popup.html(data['html']);
+            $(window).resize();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            var error;
+            if (jqXHR.responseText) {
+                error = $.parseJSON(jqXHR.responseText).error;
+            } else {
+                error = "{% trans "Please check the network." %}";
+            }
+            upload_info_popup.html('<p class="error alc">' + error + '</p>');
+            $(window).resize();
+        }
+    });
+});
