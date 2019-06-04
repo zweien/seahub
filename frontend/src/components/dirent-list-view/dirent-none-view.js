@@ -58,8 +58,8 @@ class DirentNodeView extends React.Component {
           <p className="text-center">{gettext('You can create files quickly')}{' +'}</p>
           <div className="big-new-file-button-group">
             <div className="d-flex justify-content-center">
-              <button className="big-new-file-button" onClick={this.onCreateNewFile.bind(this, '.md')}>
-                {'+ Markdown'}</button>
+              <button className="big-new-file-button" onClick={this.onCreateNewFile.bind(this, '.umind')}>
+                {'+ Umind'}</button>
               <button className="big-new-file-button" onClick={this.onCreateNewFile.bind(this, '.pptx')}>
                 {'+ PPT'}</button>
             </div>

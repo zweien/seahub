@@ -63,7 +63,8 @@ from seahub.utils import render_error, is_org_context, \
 from seahub.utils.ip import get_remote_ip
 from seahub.utils.timeutils import utc_to_local
 from seahub.utils.file_types import (IMAGE, PDF, SVG,
-        DOCUMENT, SPREADSHEET, AUDIO, MARKDOWN, TEXT, VIDEO, DRAW, XMIND, CTABLE, CDOC)
+        DOCUMENT, SPREADSHEET, AUDIO, MARKDOWN, TEXT, VIDEO, DRAW, XMIND,
+        CTABLE, CDOC, UMIND)
 from seahub.utils.star import is_file_starred
 from seahub.utils.http import json_response, \
         BadRequestException, RequestForbbiddenException
@@ -396,7 +397,7 @@ def can_edit_file(file_name, file_size, repo):
 
     file_type, file_ext = get_file_type_and_ext(file_name)
 
-    if file_type in (TEXT, MARKDOWN) or file_ext in get_conf_text_ext():
+    if file_type in (TEXT, MARKDOWN, UMIND) or file_ext in get_conf_text_ext():
         return True, ''
 
     if file_type in (DOCUMENT, SPREADSHEET):
@@ -739,11 +740,31 @@ def view_lib_file(request, repo_id, path):
             return_dict['xmind_image_src'] = urlquote(get_thumbnail_src(repo_id, XMIND_IMAGE_SIZE, path))
 
         return render(request, template, return_dict)
-        
     elif filetype == CTABLE:
         return render(request, template, return_dict)
     elif filetype == CDOC:
         return render(request, template, return_dict)    
+    elif filetype == UMIND:
+        from seahub.alibaba.models import AlibabaProfile
+        try:
+            from seahub.settings import ALIBABA_UMIND_JS_SRC
+        except ImportError:
+            ALIBABA_UMIND_JS_SRC = ''
+
+        ali_work_no = ''
+        ali_username = ''
+        ali_profile = AlibabaProfile.objects.get_profile(username)
+        if ali_profile:
+            ali_work_no = ali_profile.work_no
+            ali_username = '%s (%s)' % ( ali_profile.emp_name, ali_profile.nick_name)
+
+        return_dict['repo_id'] = repo_id
+        return_dict['username'] = username
+        return_dict['ali_work_no'] = ali_work_no
+        return_dict['ali_username'] = ali_username
+        return_dict['ali_umind_js_src'] = ALIBABA_UMIND_JS_SRC
+        return render(request, 'view_file_umind.html', return_dict)
+
     elif filetype == IMAGE:
 
         if file_size > FILE_PREVIEW_MAX_SIZE:

@@ -138,6 +138,7 @@ PREVIEW_FILEEXT = {
     XMIND: ('xmind',),
     CTABLE: ('ctable',),
     CDOC: ('cdoc',),
+    UMIND: ('umind',),
 }
 
 def gen_fileext_type_map():

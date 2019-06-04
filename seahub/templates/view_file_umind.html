@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>UMind</title>
+  <link rel="stylesheet" href="https://g.alicdn.com/code/lib/antd/3.10.7/antd.min.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://g.alicdn.com/code/lib/react/16.6.1/umd/react.production.min.js"></script>
+  <script src="https://g.alicdn.com/code/lib/react-dom/16.6.1/umd/react-dom.production.min.js"></script>
+  <script src="https://g.alicdn.com/code/lib/moment.js/2.22.2/moment.min.js"></script>
+  <script src="https://g.alicdn.com/code/lib/antd/3.10.7/antd.min.js"></script>
+  <script src="https://g.alicdn.com/code/lib/socket.io/2.1.1/socket.io.js"></script>
+  {% if ali_umind_js_src %}
+  <script src="{{ ali_umind_js_src }}"></script>
+  {% else %}
+  <script src="https://g.alicdn.com/UMind/UMind/1.0.0/bundle.js"></script>
+  {% endif %}
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script type="text/javascript">
+
+const { UMind, React, ReactDOM } = window;
+
+const DEFAULT_DATA = {
+  roots: [{
+    label: '中心主题',
+    children: [{
+      label: '分支主题 1',
+    }, {
+      label: '分支主题 2',
+    }, {
+      label: '分支主题 3',
+    }],
+  }],
+};
+
+// 语言环境
+// 中文: zh-CN（默认）
+// 英文: en-US
+const locale = 'zh-CN';
+
+// 配置数据
+const config = {
+  file: {
+    id: "{{ repo_id }}{{ path }}",
+  },
+  user: {
+    id: "{{ ali_work_no }}",
+    name: "{{ ali_username }}",
+    avatar: "https://work.alibaba-inc.com/photo/{{ ali_work_no }}.48x48.jpg",
+  },
+  socket: {
+    url: 'https://umind.alibaba-inc.com',
+    events: {
+      user: 'user',
+      operation: 'operation',
+    },
+    onUserListChange: () => {},
+  },
+  header: {
+    logo: 'https://file.alibaba-inc.com/media/img/alifile.png',
+    logoLink: 'https://file.alibaba-inc.com/',
+  },
+};
+
+// 保存数据
+// 回调函数触发时机：
+// 1. 用户主动保存
+// 2. 每次命令操作
+
+const repoID = "{{ repo_id }}";
+const filePath = "{{ path }}";
+const dirPath = "{{ parent_dir }}";
+const fileName = "{{ filename }}";
+
+const handleSave = (data) => {
+
+  const url = '/api2/repos/' + repoID + '/update-link/?p=' + dirPath;
+  axios.get(url)
+    .then(function (response) {
+
+      const uploadLink = response.data;
+
+      let formData = new FormData();
+      let blob = new Blob([JSON.stringify(data)], { type: "text/plain" });
+
+      formData.append("file", blob);
+      formData.append("target_file", filePath);
+      formData.append("filename", fileName);
+
+      axios.create()({
+        method: 'post',
+        url: uploadLink,
+        data: formData,
+      })
+    })
+    .catch(function (error) {
+      console.log(error);
+    })
+};
+
+// get file content
+let file_content = '';
+const url = '/api2/repos/' + repoID + '/file/?p=' + filePath + '&reuse=1';
+axios.get(url)
+  .then(function (response) {
+    const file_content_url = response.data;
+    axios.get(file_content_url)
+      .then(function (response) {
+
+        if (response.data) {
+          file_content = response.data;
+        } else {
+          file_content = DEFAULT_DATA;
+        }
+
+        ReactDOM.render(
+          React.createElement(UMind.default,
+            {
+              locale,
+              config,
+              data: file_content,
+              save: handleSave,
+            }),
+          document.getElementById('root'),
+        );
+
+      })
+      .catch(function (error) {
+        console.log(error);
+      })
+   })
+  .catch(function (error) {
+    console.log(error);
+  })
+
+</script>
+</body>
+</html>
