@@ -119,126 +119,126 @@ def alibaba_user_profile(request, username):
 
     return render(request, 'alibaba/user_profile.html', init_dict)
 
-@login_required_ajax
-def alibaba_ajax_group_members_import(request, group_id):
-    """Import users to group.
+### alibaba api ###
 
-    Permission checking:
-    1. Only group admin/owner can add import group members
-    """
+class AlibabaImportGroupMembers(APIView):
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = (UserRateThrottle,)
 
-    result = {}
-    username = request.user.username
-    content_type = 'application/json; charset=utf-8'
+    def post(self, request, group_id, format=None):
+        """Import users to group.
 
-    # argument check
-    uploaded_file = request.FILES['file']
-    if not uploaded_file:
-        result['error'] = _('Argument missing')
-        return HttpResponse(json.dumps(result), status=400,
-                        content_type=content_type)
+        Permission checking:
+        1. Only group admin/owner can add import group members
+        """
 
-    # recourse check
-    group_id = int(group_id)
-    group = ccnet_api.get_group(group_id)
-    if not group:
-        result['error'] = _('Group does not exist')
-        return HttpResponse(json.dumps(result), status=404,
-                        content_type=content_type)
+        result = {}
+        username = request.user.username
 
-    # check permission
-    if not is_group_admin_or_owner(group_id, username):
-        result['error'] = _('Permission denied.')
-        return HttpResponse(json.dumps(result), status=403,
-                        content_type=content_type)
+        # argument check
+        uploaded_file = request.FILES['file']
+        if not uploaded_file:
+            error_msg = 'file invalid.'
+            return api_error(status.HTTP_400_BAD_REQUEST, error_msg)
 
-    # prepare work no list from uploaded file
-    try:
-        content = uploaded_file.read()
-        encoding = chardet.detect(content)['encoding']
-        if encoding != 'utf-8':
-            content = content.decode(encoding, 'replace').encode('utf-8')
+        # recourse check
+        group_id = int(group_id)
+        group = ccnet_api.get_group(group_id)
+        if not group:
+            error_msg = _('Group does not exist')
+            return api_error(status.HTTP_404_NOT_FOUND, error_msg)
 
-        filestream = StringIO.StringIO(content)
-        reader = csv.reader(filestream)
-    except Exception as e:
-        logger.error(e)
-        result['error'] = _('Internal Server Error')
-        return HttpResponse(json.dumps(result), status=500,
-                        content_type=content_type)
+        # check permission
+        if not is_group_admin_or_owner(group_id, username):
+            error_msg = 'permission denied.'
+            return api_error(status.HTTP_403_FORBIDDEN, error_msg)
 
-    work_no_list = []
-    for row in reader:
-        if not row:
-            continue
-        work_no = row[0].strip().lower()
-        work_no_list.append(work_no)
-
-    def alibaba_get_group_member_info(group_id, alibaba_profile):
-        emp_name = alibaba_profile.emp_name
-        nick_name = alibaba_profile.nick_name
-        if nick_name:
-            emp_nick_name = '%s(%s)' % (emp_name, nick_name)
-        else:
-            emp_nick_name = emp_name
-
-        member_info = {
-            'group_id': group_id,
-            "name": emp_nick_name,
-            'email': alibaba_profile.uid,
-            "avatar_url": get_alibaba_user_avatar_url(alibaba_profile.uid),
-        }
-        return member_info
-
-    is_cn = request.LANGUAGE_CODE in ('zh-cn', 'zh-tw')
-
-    result = {}
-    result['failed'] = []
-    result['success'] = []
-
-    # check work_no validation
-    for work_no in work_no_list:
-
-        # only digit in work_no string
-        if len(work_no) < 6 and work_no.isdigit():
-            work_no = '000000'[:6 - len(work_no)] + work_no
-
-        alibaba_profile = AlibabaProfile.objects.get_profile_by_work_no(work_no)
-        if not alibaba_profile or not alibaba_profile.uid:
-            result['failed'].append({
-                'email': work_no,
-                'error_msg': '工号没找到。' if is_cn else 'Employee ID not found.'
-                })
-            continue
-
-        ccnet_email = alibaba_profile.uid
-        if is_group_member(group_id, ccnet_email, in_structure=False):
-            result['failed'].append({
-                'email': work_no,
-                'error_msg': '已经是群组成员。' if is_cn else 'Is already a group member.'
-                })
-            continue
-
+        # prepare work no list from uploaded file
         try:
-            ccnet_api.group_add_member(group_id, username, ccnet_email)
-            member_info = alibaba_get_group_member_info(group_id,
-                    alibaba_profile)
-            result['success'].append(member_info)
+            content = uploaded_file.read()
+            encoding = chardet.detect(content)['encoding']
+            if encoding != 'utf-8':
+                content = content.decode(encoding, 'replace').encode('utf-8')
+
+            filestream = StringIO.StringIO(content)
+            reader = csv.reader(filestream)
         except Exception as e:
             logger.error(e)
-            result['failed'].append({
-                'email': work_no,
-                'error_msg': _('Internal Server Error')
-                })
+            error_msg = 'Internal Server Error'
+            return api_error(status.HTTP_500_INTERNAL_SERVER_ERROR, error_msg)
 
-        add_user_to_group.send(sender=None,
-                               group_staff=username,
-                               group_id=group_id,
-                               added_user=ccnet_email)
+        work_no_list = []
+        for row in reader:
+            if not row:
+                continue
+            work_no = row[0].strip().lower()
+            work_no_list.append(work_no)
 
-    return HttpResponse(json.dumps(result), content_type=content_type)
+        def alibaba_get_group_member_info(group_id, alibaba_profile):
+            emp_name = alibaba_profile.emp_name
+            nick_name = alibaba_profile.nick_name
+            if nick_name:
+                emp_nick_name = '%s(%s)' % (emp_name, nick_name)
+            else:
+                emp_nick_name = emp_name
 
-### alibaba api ###
+            member_info = {
+                'group_id': group_id,
+                "name": emp_nick_name,
+                'email': alibaba_profile.uid,
+                "avatar_url": get_alibaba_user_avatar_url(alibaba_profile.uid),
+            }
+            return member_info
+
+        is_cn = request.LANGUAGE_CODE in ('zh-cn', 'zh-tw')
+
+        result = {}
+        result['failed'] = []
+        result['success'] = []
+
+        # check work_no validation
+        for work_no in work_no_list:
+
+            # only digit in work_no string
+            if len(work_no) < 6 and work_no.isdigit():
+                work_no = '000000'[:6 - len(work_no)] + work_no
+
+            alibaba_profile = AlibabaProfile.objects.get_profile_by_work_no(work_no)
+            if not alibaba_profile or not alibaba_profile.uid:
+                result['failed'].append({
+                    'email': work_no,
+                    'error_msg': '工号没找到。' if is_cn else 'Employee ID not found.'
+                    })
+                continue
+
+            ccnet_email = alibaba_profile.uid
+            if is_group_member(group_id, ccnet_email, in_structure=False):
+                result['failed'].append({
+                    'email': work_no,
+                    'error_msg': '已经是群组成员。' if is_cn else 'Is already a group member.'
+                    })
+                continue
+
+            try:
+                ccnet_api.group_add_member(group_id, username, ccnet_email)
+                member_info = alibaba_get_group_member_info(group_id,
+                        alibaba_profile)
+                result['success'].append(member_info)
+            except Exception as e:
+                logger.error(e)
+                result['failed'].append({
+                    'email': work_no,
+                    'error_msg': _('Internal Server Error')
+                    })
+
+            add_user_to_group.send(sender=None,
+                                group_staff=username,
+                                group_id=group_id,
+                                added_user=ccnet_email)
+
+        return Response(result)
+
 
 class AlibabaSearchUser(APIView):
     """ Search user from alibaba profile
