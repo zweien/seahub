@@ -128,6 +128,9 @@ MIDDLEWARE_CLASSES = (
     'seahub.two_factor.middleware.ForceTwoFactorAuthMiddleware',
     'seahub.trusted_ip.middleware.LimitIpMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+######################### Start PingAn Group related ########################
+    'seahub.share.middleware.FileLinkVerifyMiddleware',
+######################### End PingAn Group related ##########################
 )
 
 
@@ -382,6 +385,14 @@ SHARE_LINK_EMAIL_LANGUAGE = ''
 
 # check virus for files uploaded form upload link
 ENABLE_UPLOAD_LINK_VIRUS_CHECK = False
+
+######################### Start PingAn Group related ########################
+# TODO: move to share/settings.py
+SHARE_ACCESS_FORCE_PASSWD = True
+# Days of share link password expiration
+# default 3 days, -1 for no limit
+SHARE_ACCESS_EXPIRATION = 3
+######################### End PingAn Group related ##########################
 
 # mininum length for user's password
 USER_PASSWORD_MIN_LENGTH = 6

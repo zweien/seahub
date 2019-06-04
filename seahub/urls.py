@@ -771,3 +771,36 @@ urlpatterns += [
     url(r'^weixin-work/3rd-app-install/callback/$',
         weixin_work_3rd_app_install_cb, name='weixin_work_3rd_app_install_cb'),
 ]
+
+########################### Start PingAn Group related ######################
+from seahub.views.sysadmin_pingan import *
+from seahub.share.api import ApprovalChainView, SysDownloadLinksReport, \
+    UserApprovalChainsView, UserApprovalChainView
+
+urlpatterns += [
+    url(r'^sys/reviseradmin/$', sys_reviser_admin, name='sys_reviser_admin'),
+    url(r'^sys/reviseradmin/user/$', sys_reviser_admin_user_map, name='sys_reviser_admin_user_map'),
+    url(r'^sys/reviseradmin/ignore/$', sys_reviser_admin_ignore, name='sys_reviser_admin_ignore'),
+    url(r'^sys/download-links-report/$', sys_download_links_report, name='sys_download_links_report'),
+    url(r'^sys/download-links-report-search/$', sys_download_links_report_search, name='sys_download_links_report_search'),
+    url(r'^sys/upload-links-report/$', sys_upload_links_report, name='sys_upload_links_report'),
+    url(r'^sys/upload-links-report-search/$', sys_upload_links_report_search, name='sys_upload_links_report_search'),
+    url(r'^sys/ajax-get-upload-files-info/$', ajax_get_upload_files_info, name='ajax_get_upload_files_info'),
+    url(r'^sys/links-report/export-excel/$', sys_links_report_export_excel, name='sys_links_report_export_excel'),
+    url(r'^reviseradmin/add/$', reviser_add, name="reviser_add"),
+    url(r'^reviseradmin/test/$', reviser_test, name="reviser_test"),
+    url(r'^reviseradmin/user/add/$', user_reviser_add, name="user_reviser_add"),
+    url(r'^reviseradmin/user/test/$', user_reviser_test, name="user_reviser_test"),
+    # url(r'^reviseradmin/map-add/$', reviser_map_add, name="reviser_map_add"),
+    url(r'^reviseradmin/verify-ignore-add/$', verify_ignore_add, name="verify_ignore_add"),
+    url(r'^reviseradmin/remove/(?P<dept>[^/].+)/$', reviser_remove, name="reviser_remove"),
+    url(r'^reviseradmin/user/remove/(?P<user>[^/].+)/$', user_reviser_remove, name="user_reviser_remove"),
+    # url(r'^reviseradmin/map-remove/(?P<reviser_info_id>\d+)/$', reviser_map_remove, name="reviser_map_remove"),
+    url(r'^reviseradmin/verify-ignore-remove/(?P<pk>\d+)/$', verify_ignore_remove, name="verify_ignore_remove"),
+    url(r'^api/v2.1/admin/approval-chain/$', ApprovalChainView.as_view(), name='api-v2.1-approval-chain'),
+    url(r'^api/v2.1/admin/user-approval-chains/$', UserApprovalChainsView.as_view(), name='api-v2.1-user-approval-chains'),
+    url(r'^api/v2.1/admin/user-approval-chains/(?P<user>[^/].+)/$', UserApprovalChainView.as_view(), name='api-v2.1-user-approval-chain'),
+
+    url(r'^api/v2.1/admin/download-link-excel/$', SysDownloadLinksReport.as_view(), name='api-v2.1-sys-download-links-report'),
+]
+########################### End PingAn Group related ########################

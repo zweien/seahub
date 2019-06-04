@@ -53,6 +53,11 @@ except ImportError:
 from seahub.work_weixin.settings import ENABLE_WORK_WEIXIN
 
 
+try:
+    from seahub.settings import EMAIL_HOST_USER
+except ImportError:
+    EMAIL_HOST_USER = ''
+
 def base(request):
     """
     Add seahub base configure to the context.
@@ -135,6 +140,7 @@ def base(request):
         'enable_file_scan': ENABLE_FILE_SCAN,
         'enable_work_weixin': ENABLE_WORK_WEIXIN,
         'avatar_url': avatar_url if avatar_url else '',
+        'email_host_user': EMAIL_HOST_USER,
     }
 
     if request.user.is_staff:

@@ -3645,7 +3645,11 @@ class DirView(APIView):
                 # rename dir
                 seafile_api.rename_file(repo_id, parent_dir, old_dir_name,
                                         checked_newname, username)
-                return Response('success', status=status.HTTP_200_OK)
+
+                new_dir_path = posixpath.join(parent_dir, checked_newname)
+                dir_obj = seafile_api.get_dirent_by_path(repo_id, new_dir_path)
+
+                return Response({'obj_name': dir_obj.obj_name})
             except SearpcError, e:
                 logger.error(e)
                 return api_error(HTTP_520_OPERATION_FAILED,

@@ -832,7 +832,34 @@ def user_info(request, email):
 
     force_2fa = UserOptions.objects.is_force_2fa(user.username)
 
-    return render(request, 
+######################### Start PingAn Group related ########################
+    from seahub.share.models import (
+        FileShareVerifyIgnore, ApprovalChain,
+        approval_chain_list2str, UserApprovalChain
+    )
+    approving_chain_info = None
+
+    # department relationship, third priority
+    d_profile = DetailedProfile.objects.get_detailed_profile_by_user(email)
+    if d_profile:
+        chain = ApprovalChain.objects.get_by_department(d_profile.department)
+        if chain:
+            msg = "%s <-> %s" % (d_profile.department, approval_chain_list2str(chain))
+            approving_chain_info = _('Department approving chain: %s.') % msg
+
+    # user approval chain, second priority
+    chain = UserApprovalChain.objects.get_by_user(email)
+    if chain:
+        approving_chain_info = "%s <-> %s" % (email, approval_chain_list2str(chain))
+
+    # ignore list first priority
+    if FileShareVerifyIgnore.objects.filter(username=email).exists():
+        approving_chain_info = _('This user is ignored, no human verify is required.')
+
+    if approving_chain_info is None:
+        approving_chain_info = _('This user does not belong to any approving chain.')
+######################### End PingAn Group related ##########################
+    return render(request,
         'sysadmin/userinfo.html', {
             'owned_repos': owned_repos,
             'space_quota': space_quota,
@@ -849,6 +876,9 @@ def user_info(request, email):
             'default_device': user_default_device,
             'force_2fa': force_2fa,
             'reference_id': reference_id if reference_id else '',
+######################### Start PingAn Group related ########################
+            'approving_chain_info': approving_chain_info,
+######################### End PingAn Group related ##########################
         })
 
 @login_required_ajax
@@ -1057,6 +1087,11 @@ def user_toggle_status(request, email):
 
     try:
         user = User.objects.get(email)
+        if user.is_active == bool(user_status):
+            # No need to activate user if user is already activated.
+            return HttpResponse(json.dumps({'success': True}),
+                                content_type=content_type)
+
         user.is_active = bool(user_status)
         result_code = user.save()
         if result_code == -1:
@@ -1064,6 +1099,12 @@ def user_toggle_status(request, email):
                                 content_type=content_type)
 
         if user.is_active is True:
+######################### Start PingAn Group related ########################
+            from registration import signals
+            signals.user_activated.send(sender=None, user=user,
+                                        request=request)
+######################### End PingAn Group related ##########################
+
             try:
                 email_user_on_activation(user)
                 email_sent = True

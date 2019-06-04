@@ -150,7 +150,7 @@ def add_notice_from_info(notices):
             if d.get('msg_from') is not None:
                 notice.msg_from = d.get('msg_from')
 
-        elif notice.is_repo_share_msg():
+        elif notice.is_repo_share_msg() or notice.is_file_shared_link_verify_msg():
             try:
                 d = json.loads(notice.detail)
                 notice.msg_from = d['share_from']

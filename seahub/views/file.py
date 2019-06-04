@@ -133,6 +133,13 @@ from seahub.bisheng_office.utils import get_bisheng_dict, \
 from seahub.bisheng_office.settings import ENABLE_BISHENG_OFFICE
 from seahub.bisheng_office.settings import BISHENG_OFFICE_FILE_EXTENSION
 
+######################### Start PingAn Group related ########################
+from seahub.share.models import FileShareDownloads
+from seahub.share.decorators_for_pingan import (
+    share_link_approval_for_pingan, share_link_passwd_check_for_pingan)
+from seahub.signals import file_edited
+######################### End PingAn Group related ##########################
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
@@ -1098,12 +1105,18 @@ def _download_file_from_share_link(request, fileshare):
 
     if not dl_token:
         messages.error(request, _(u'Unable to download file.'))
+######################### Start PingAn Group related ########################
+    # record donwload time
+    FileShareDownloads.objects.add(fileshare, username)
+######################### End PingAn Group related ##########################
 
     return HttpResponseRedirect(gen_file_get_url(dl_token, filename))
 
 @ensure_csrf_cookie
 @share_link_audit
 @share_link_login_required
+@share_link_approval_for_pingan
+@share_link_passwd_check_for_pingan
 def view_shared_file(request, fileshare):
     """
     View file via shared link.
@@ -1113,17 +1126,13 @@ def view_shared_file(request, fileshare):
 
     token = fileshare.token
 
-    # check if share link is encrypted
-    password_check_passed, err_msg = check_share_link_common(request, fileshare)
-    if not password_check_passed:
-        d = {'token': token, 'view_name': 'view_shared_file', 'err_msg': err_msg}
-        return render(request, 'share_access_validation.html', d)
-
     # recourse check
     repo_id = fileshare.repo_id
     repo = get_repo(repo_id)
     if not repo:
-        raise Http404
+######################### Start PingAn Group related ########################
+        return render_error(request, _(u'该文件外链已失效。'))
+######################### End PingAn Group related ##########################
 
     path = normalize_file_path(fileshare.path)
     obj_id = seafile_api.get_file_id_by_path(repo_id, path)
@@ -1618,6 +1627,11 @@ def file_edit_submit(request, repo_id):
         seafserv_threaded_rpc.put_file(repo_id, tmpfile, parent_dir,
                                  filename, username, head_id)
         remove_tmp_file()
+######################### Start PingAn Group related ########################
+        file_edited.send(sender=None, repo_id=repo_id,
+                         parent_dir=parent_dir, file_name=filename,
+                         username=username)
+######################### End PingAn Group related ##########################
         return HttpResponse(json.dumps({'href': next}),
                             content_type=content_type)
     except SearpcError as e:

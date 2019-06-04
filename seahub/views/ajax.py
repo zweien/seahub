@@ -58,6 +58,13 @@ from seahub.base.templatetags.seahub_tags import translate_seahub_time, \
 from seahub.constants import PERMISSION_READ_WRITE
 from seahub.constants import HASH_URLS
 
+######################### Start PingAn Group related ########################
+from datetime import datetime
+from seahub.signals import file_deleted
+from seahub.share.models import UploadLinkShareUploads
+from seahub.utils.ip import get_remote_ip
+######################### End PingAn Group related ##########################
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
@@ -556,6 +563,11 @@ def delete_dirent(request, repo_id):
     # delete file/dir
     try:
         seafile_api.del_file(repo_id, parent_dir, dirent_name, username)
+######################### Start PingAn Group related ########################
+        file_deleted.send(sender=None, repo_id=repo_id,
+                          parent_dir=parent_dir, file_name=dirent_name,
+                          username=username)
+######################### End PingAn Group related ##########################
         return HttpResponse(json.dumps({'success': True}),
                             content_type=content_type)
     except SearpcError, e:
@@ -622,6 +634,17 @@ def delete_dirents(request, repo_id):
         seafile_api.del_file(repo_id, parent_dir, multi_files, username)
     except SearpcError, e:
         logger.error(e)
+        undeleted.append(dirent_name)
+
+######################### Start PingAn Group related ########################
+    try:
+        for dirent_name in deleted:
+            file_deleted.send(sender=None, repo_id=repo_id,
+                              parent_dir=parent_dir, file_name=dirent_name,
+                              username=username)
+    except SearpcError, e:
+        logger.error(e)
+######################### End PingAn Group related ##########################
 
     return HttpResponse(json.dumps({'deleted': deleted, 'undeleted': undeleted}),
                         content_type=content_type)
@@ -1025,6 +1048,16 @@ def upload_file_done(request):
         result['error'] = _('File does not exist')
         return HttpResponse(json.dumps(result), status=400, content_type=ct)
 
+    ######################### Start PingAn Group related ########################
+    uls = UploadLinkShare.objects.get_valid_upload_link_by_token(
+        request.GET.get('t', ''))
+    if uls:
+        size = request.GET.get('size', 0)
+        UploadLinkShareUploads(upload_link=uls, file_name=filename,
+                               file_size=size, upload_time=datetime.now(),
+                               upload_ip=get_remote_ip(request)).save()
+######################## End PingAn Group related ##########################
+
     # send singal
     upload_file_successful.send(sender=None,
                                 repo_id=repo_id,
@@ -1173,7 +1206,11 @@ def get_file_upload_url_ul(request, token):
         kwargs.update({'check_virus': True})
 
     try:
-        acc_token = seafile_api.get_fileserver_access_token(*args, **kwargs)
+########################### Start PingAn Group related ######################
+        acc_token = seafile_api.get_fileserver_access_token(
+            repo_id, json.dumps({'anonymous_user': username}), 'upload', '',
+            use_onetime=False, check_virus=True)
+########################### End PingAn Group related ########################
     except SearpcError as e:
         logger.error(e)
         return HttpResponse(json.dumps({"error": _("Internal Server Error")}),
