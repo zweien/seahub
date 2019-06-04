@@ -31,10 +31,6 @@ define([
             this.dirent_path = options.dirent_path;
             this.obj_name = options.obj_name;
             this.is_dir = options.is_dir;
-///////////////////////// Start PingAn Group related ////////////////////////
-            this.force_passwd = app.pageOptions.share_access_force_passwd;
-            this.force_expirate = app.pageOptions.share_access_force_expirate;
-///////////////////////// End PingAn Group related //////////////////////////
 
             // share to user/group
             var enable_dir_private_share = false;
@@ -60,7 +56,7 @@ define([
 
             this.$("#share-tabs").tabs();
 
-            if (!this.repo_encrypted && app.pageOptions.can_generate_share_link && !this.is_dir) {
+            if (!this.repo_encrypted && app.pageOptions.can_generate_share_link) {
                 this.downloadLinkPanelInit();
             }
             if (this.is_dir) {
@@ -298,57 +294,10 @@ define([
 
             var random_password_length = app.pageOptions.share_link_password_min_length;
             var random_password = '';
-            /*
-            ////////////////////////// modified 'possible' for ping-an ////////////////////////
-            var possible = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789abcdefghijkmnpqrstuvwxyz23456789';
+            var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz0123456789';
             for (var i = 0; i < random_password_length; i++) {
                 random_password += possible.charAt(Math.floor(Math.random() * possible.length));
             }
-            */
-            ////////////////////////// modified 'random password generation' for ping-an ////////////////////////
-            String.prototype.pick = function(min, max) {
-                var n, chars = '';
-
-                if (typeof max === 'undefined') {
-                    n = min;
-                } else {
-                    n = min + Math.floor(Math.random() * (max - min + 1));
-                }
-
-                for (var i = 0; i < n; i++) {
-                    chars += this.charAt(Math.floor(Math.random() * this.length));
-                }
-
-                return chars;
-            };
-            String.prototype.shuffle = function() {
-                var array = this.split('');
-                var tmp, current, top = array.length;
-
-                if (top) while (--top) {
-                    current = Math.floor(Math.random() * (top + 1));
-                    tmp = array[current];
-                    array[current] = array[top];
-                    array[top] = tmp;
-                }
-
-                return array.join('');
-            };
-
-            var possible_uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-            var possible_lowercase = 'abcdefghijkmnpqrstuvwxyz';
-            var possible_number = '23456789';
-            var possible_special = '!@#$%^&*()';
-            var possible = possible_uppercase + possible_lowercase + possible_number + possible_number;
-
-            random_password += possible_uppercase.pick(1);
-            random_password += possible_lowercase.pick(1);
-            random_password += possible_number.pick(1);
-            random_password += possible_special.pick(1);
-            random_password += possible.pick(random_password_length - 4);
-            random_password = random_password.shuffle();
-            ////////////////////////////////// End //////////////////////////////////////////////////////////
-
             $('input[name=password], input[name=password_again]', form).attr('type', 'text').val(random_password);
             $('.show-or-hide-password', form)
             .attr('title', gettext('Hide'))
@@ -391,9 +340,8 @@ define([
                 use_passwd = use_passwd_checkbox.prop('checked');
 
             var post_data = {};
-///////////////////////// Start PingAn Group related ////////////////////////
-            if (this.force_passwd || use_passwd) {
-///////////////////////// End PingAn Group related //////////////////////////
+
+            if (use_passwd) {
                 var passwd_input = $('[name="password"]', form),
                     passwd_again_input = $('[name="password_again"]', form),
                     passwd = $.trim(passwd_input.val()),
@@ -406,16 +354,13 @@ define([
                     Common.showFormError(form_id, gettext("Password is too short"));
                     return false;
                 }
-///////////////////////// Start PingAn Group related ////////////////////////
-                if (this.is_dir) { // for file (download link), no 'passwd again' input.
-                    if (!passwd_again) {
-                        Common.showFormError(form_id, gettext("Please enter the password again"));
-                        return false;
-                    }
-                    if (passwd != passwd_again) {
-                        Common.showFormError(form_id, gettext("Passwords don't match"));
-                        return false;
-                    }
+                if (!passwd_again) {
+                    Common.showFormError(form_id, gettext("Please enter the password again"));
+                    return false;
+                }
+                if (passwd != passwd_again) {
+                    Common.showFormError(form_id, gettext("Passwords don't match"));
+                    return false;
                 }
                 post_data["password"] = passwd;
             }
@@ -467,26 +412,6 @@ define([
                     post_data["permissions"] = JSON.stringify(linkPermDetails);
                 }
             }
-///////////////////////// Start PingAn Group related ////////////////////////
-
-                var sent_to = $.trim($('[name="sent_to"]', form).val());
-                if (!sent_to) {
-                    Common.showFormError(form_id, gettext("Please enter the recipient's email."));
-                    return false;
-                }
-                
-                var note = $.trim($('[name="note"]', form).val());
-                if (!note) {
-                    Common.showFormError(form_id, gettext("Please enter note."));
-                    return false;
-                }
-                
-                $.extend(post_data, {
-                    'sent_to': sent_to,
-                    'note': note
-                });
-            }
-///////////////////////// End PingAn Group related //////////////////////////
 
             $('.error', form).addClass('hide').html('');
             var gen_btn = $('[type="submit"]', form);
@@ -502,9 +427,7 @@ define([
                 form.addClass('hide');
                 // restore form state
                 Common.enableButton(gen_btn);
-///////////////////////// Start PingAn Group related ////////////////////////
-                if (_this.force_passwd || use_passwd) {
-///////////////////////// End PingAn Group related //////////////////////////
+                if (use_passwd) {
                     use_passwd_checkbox.prop('checked', false)
                         .parent().removeClass('checkbox-checked')
                         // hide password input
@@ -570,43 +493,9 @@ define([
         },
 
         showDownloadLinkSendForm: function() {
-            var _this = this;
-            var $form = this.$('#send-download-link-form');
             this.$('#send-download-link, #delete-download-link').addClass('hide');
-
-            if (this.download_link_token_to_sent == this.download_link_token) {
-                $form.removeClass('hide');
-                return;
-            }
-
-            $.ajax({
-                url: Common.getUrl({'name': 'get_link_receivers'}),
-                type: 'GET',
-                data: {'token': this.download_link_token},
-                dataType: 'json',
-                success: function(data) { // data: {"receivers": ["xx@1.com"]}
-                    var emails = data.receivers;
-                    if (emails.length) {
-                        var e_opts = '';
-                        for (var i = 0, len = emails.length; i < len; i++) {
-                            e_opts += '<option value="' + Common.HTMLescape(emails[i]) + '" data-index="' + i + '">' + Common.HTMLescape(emails[i]) + '</option>';
-                        }
-                        $('[name="email"]', $form).replaceWith('<select name="email" multiple="multiple"></select>');
-                        $('[name="email"]', $form).html(e_opts).select2({
-                            width: '268px',
-                            placeholder: gettext("Select emails"),
-                            escapeMarkup: function(m) { return m; }
-                        });
-
-                        _this.download_link_token_to_sent = _this.download_link_token;
-                    }
-                },
-                error: function() {
-                },
-                complete: function() {
-                    $form.removeClass('hide');
-                }
-            });
+            this.$('#send-download-link-form').removeClass('hide');
+            // no addAutocomplete for email input
         },
 
         sendLink: function(options) {
