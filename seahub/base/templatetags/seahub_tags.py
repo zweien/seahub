@@ -3,25 +3,24 @@
 import datetime as dt
 from datetime import datetime
 import re
-import time
 
 from django import template
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from django.utils import translation, formats
 from django.utils.dateformat import DateFormat
+from django.utils.encoding import smart_text
 from django.utils.translation import ugettext as _
 from django.utils.translation import ugettext, ungettext
-from django.utils.translation import pgettext
 from django.utils.html import escape
 
-from seahub.base.accounts import User
+from seaserv import ccnet_api
+
 from seahub.profile.models import Profile
 from seahub.profile.settings import NICKNAME_CACHE_TIMEOUT, NICKNAME_CACHE_PREFIX, \
     EMAIL_ID_CACHE_TIMEOUT, EMAIL_ID_CACHE_PREFIX, CONTACT_CACHE_TIMEOUT, \
     CONTACT_CACHE_PREFIX
 from seahub.cconvert import CConvert
-from seahub.po import TRANSLATION_MAP
 from seahub.shortcuts import get_first_object_or_none
 from seahub.utils import normalize_cache_key, CMMT_DESC_PATT
 from seahub.utils.html import avoid_wrapping
@@ -356,7 +355,7 @@ def email2nickname(value):
     key = normalize_cache_key(value, NICKNAME_CACHE_PREFIX)
     cached_nickname = cache.get(key)
     if cached_nickname and cached_nickname.strip():
-        return cached_nickname.strip()
+        return smart_text(cached_nickname.strip())
 
     profile = get_first_object_or_none(Profile.objects.filter(user=value))
     if profile is not None and profile.nickname and profile.nickname.strip():
@@ -365,7 +364,7 @@ def email2nickname(value):
         nickname = value.split('@')[0]
 
     cache.set(key, nickname, NICKNAME_CACHE_TIMEOUT)
-    return nickname
+    return smart_text(nickname)
 
 @register.filter(name='email2contact_email')
 def email2contact_email(value):
@@ -398,10 +397,10 @@ def email2id(value):
     key = normalize_cache_key(value, EMAIL_ID_CACHE_PREFIX)
     user_id = cache.get(key)
     if user_id is None:
-        try:
-            user = User.objects.get(email=value)
-            user_id = user.id
-        except User.DoesNotExist:
+        ccnet_user_obj = ccnet_api.get_emailuser(e)
+        if ccnet_user_obj:
+            user_id = ccnet_user_obj.id
+        else:
             user_id = -1
         cache.set(key, user_id, EMAIL_ID_CACHE_TIMEOUT)
     return user_id

@@ -777,6 +777,11 @@ def libraries(request):
             'enable_office_web_app': ENABLE_OFFICE_WEB_APP,
             'enable_onlyoffice': ENABLE_ONLYOFFICE,
             'trash_repos_expire_days': expire_days if expire_days > 0 else 30,
+######################### Start PingAn Group related ########################
+            'share_access_force_passwd': settings.SHARE_ACCESS_FORCE_PASSWD,
+            'share_access_force_expirate': True if settings.SHARE_ACCESS_EXPIRATION > 0 else False,
+            'share_access_expirate_days': settings.SHARE_ACCESS_EXPIRATION,
+######################### End PingAn Group related ##########################
             })
 
 @login_required

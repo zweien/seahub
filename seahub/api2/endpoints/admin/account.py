@@ -292,6 +292,9 @@ class Account(APIView):
 
                 user.is_active = is_active
 
+                # pingan, send signal when change active from False to True
+                user_active_updated = True if user.is_active != is_active else False
+
             # update password
             password = request.data.get("password", None)
             if password is not None:
@@ -302,6 +305,12 @@ class Account(APIView):
             if result_code == -1:
                 return api_error(status.HTTP_520_OPERATION_FAILED,
                                  'Failed to update user.')
+
+            # pingan, send signal when change active from False to True
+            if user_active_updated and is_active:
+                from registration import signals
+                signals.user_activated.send(sender=None, user=user,
+                                            request=request)
 
             try:
                 # update account additional info

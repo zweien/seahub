@@ -1,5 +1,6 @@
 # Copyright (c) 2012-2016 Seafile Ltd.
 import os
+import posixpath
 import logging
 import posixpath
 import requests
@@ -32,6 +33,8 @@ from seahub.settings import MAX_UPLOAD_FILE_NAME_LEN, \
 
 from seahub.drafts.models import Draft
 from seahub.drafts.utils import is_draft_file, get_file_draft
+
+from seahub.signals import file_deleted
 
 from seaserv import seafile_api
 from pysearpc import SearpcError
@@ -666,6 +669,11 @@ class FileView(APIView):
         try:
             seafile_api.del_file(repo_id, parent_dir,
                                  file_name, request.user.username)
+######################### Start PingAn Group related ########################
+            file_deleted.send(sender=None, repo_id=repo_id,
+                              parent_dir=parent_dir, file_name=file_name,
+                              username=request.user.username)
+######################### End PingAn Group related ##########################
         except SearpcError as e:
             logger.error(e)
             error_msg = 'Internal Server Error'

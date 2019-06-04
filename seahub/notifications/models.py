@@ -62,6 +62,8 @@ MSG_TYPE_REPO_TRANSFER = 'repo_transfer'
 
 USER_NOTIFICATION_COUNT_CACHE_PREFIX = 'USER_NOTIFICATION_COUNT_'
 
+MSG_TYPE_FILE_SHARED_LINK_VERIFY = 'file_shared_link_verify'
+
 def file_uploaded_msg_to_json(file_name, repo_id, uploaded_to):
     """Encode file uploaded message to json string.
     """
@@ -115,6 +117,9 @@ def repo_transfer_msg_to_json(org_id, repo_owner, repo_id, repo_name):
     """
     return json.dumps({'org_id': org_id, 'repo_owner': repo_owner,
         'repo_id': repo_id, 'repo_name': repo_name})
+
+def file_shared_link_verify_msg_to_json(share_from, token):
+    return json.dumps({'share_from': share_from, 'token': token})
 
 def get_cache_key_of_unseen_notifications(username):
     return normalize_cache_key(username,
@@ -281,6 +286,17 @@ class UserNotificationManager(models.Manager):
         return self._add_user_notification(to_user,
                                            MSG_TYPE_REPO_SHARE, detail)
 
+    def add_file_shared_link_verify_msg(self, to_user, detail):
+        """Notify verifier when someone generate a file shared link
+
+        Arguments:
+        - `self`:
+        - `to_user`:
+        - `repo_id`:
+        """
+        return self._add_user_notification(to_user,
+                                           MSG_TYPE_FILE_SHARED_LINK_VERIFY, detail)
+
     def add_repo_share_to_group_msg(self, to_user, detail):
         """Notify ``to_user`` that others shared a repo to group.
 
@@ -386,6 +402,14 @@ class UserNotification(models.Model):
         - `self`:
         """
         return self.msg_type == MSG_TYPE_REPO_SHARE
+
+    def is_file_shared_link_verify_msg(self):
+        """
+
+        Arguments:
+        - `self`:
+        """
+        return self.msg_type == MSG_TYPE_FILE_SHARED_LINK_VERIFY
 
     def is_repo_share_to_group_msg(self):
         """
@@ -605,6 +629,27 @@ class UserNotification(models.Model):
             'lib_name': repo.name,
         })
 
+        return msg
+
+    def format_file_shared_link_verify_msg(self):
+        """
+
+        Arguments:
+        - `self`:
+        """
+        try:
+            d = json.loads(self.detail)
+        except Exception as e:
+            logger.error(e)
+            return _(u"Internal error")
+
+        share_from = email2nickname(d['share_from'])
+        token = d['token']
+
+        msg = _(u"%(user)s created a new share link, please <a href='%(link)s' target='_blank'>review</a>.") % {
+            'user': escape(share_from),
+            'link': reverse('view_shared_file', args=[token]),
+            }
         return msg
 
     def format_repo_share_to_group_msg(self):
@@ -884,7 +929,7 @@ from django.dispatch import receiver
 from seahub.signals import upload_file_successful, comment_file_successful, repo_transfer
 from seahub.group.signals import grpmsg_added, group_join_request, add_user_to_group
 from seahub.share.signals import share_repo_to_user_successful, \
-    share_repo_to_group_successful
+    share_repo_to_group_successful, file_shared_link_verify
 from seahub.invitations.signals import accept_guest_invitation_successful
 from seahub.drafts.signals import comment_draft_successful, \
         request_reviewer_successful
@@ -919,6 +964,21 @@ def add_share_repo_msg_cb(sender, **kwargs):
 
     detail = repo_share_msg_to_json(from_user, repo.id, path, org_id)
     UserNotification.objects.add_repo_share_msg(to_user, detail)
+
+######################### Start PingAn Group related ########################
+@receiver(file_shared_link_verify)
+def add_file_shared_link_verify_msg_cb(sender, **kwargs):
+    """Notify verifier when someone generate a file shared link
+    """
+    from_user = kwargs.get('from_user', None)
+    to_user = kwargs.get('to_user', None) # 'to_user' is verifier
+    token = kwargs.get('token', None)
+
+    assert from_user and to_user and token is not None, 'Arguments error'
+
+    detail = file_shared_link_verify_msg_to_json(from_user, token)
+    UserNotification.objects.add_file_shared_link_verify_msg(to_user, detail)
+######################### End PingAn Group related ##########################
 
 @receiver(share_repo_to_group_successful)
 def add_share_repo_to_group_msg_cb(sender, **kwargs):

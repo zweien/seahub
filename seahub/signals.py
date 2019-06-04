@@ -10,3 +10,8 @@ repo_restored = django.dispatch.Signal(providing_args=["repo_id", "operator"])
 upload_file_successful = django.dispatch.Signal(providing_args=["repo_id", "file_path", "owner"])
 comment_file_successful = django.dispatch.Signal(providing_args=["repo", "file_path", "comment", "author", "notify_users"])
 institution_deleted = django.dispatch.Signal(providing_args=["inst_name"])
+
+######################### Start PingAn Group related ########################
+file_deleted = django.dispatch.Signal(providing_args=["org_id", "parent_dir", "file_name", "username"])
+file_edited = django.dispatch.Signal(providing_args=["org_id", "parent_dir", "file_name", "username"])
+######################### End PingAn Group related ##########################

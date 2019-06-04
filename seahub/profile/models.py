@@ -1,4 +1,5 @@
 # Copyright (c) 2012-2016 Seafile Ltd.
+import datetime
 import logging
 
 from django.conf import settings
@@ -210,14 +211,27 @@ class DetailedProfileManager(models.Manager):
 
 class DetailedProfile(models.Model):
     user = LowerCaseCharField(max_length=255, db_index=True)
+######################### Start PingAn Group related ########################
+    company = models.CharField(max_length=512, db_index=True)
+######################### End PingAn Group related ##########################
     department = models.CharField(max_length=512)
     telephone = models.CharField(max_length=100)
     objects = DetailedProfileManager()
 
 
+######################### Start PingAn Group related ########################
+class LDAPSyncUserInfo(models.Model):
+    user = LowerCaseCharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(default=datetime.datetime.now, db_index=True)
+    activated_at = models.DateTimeField(default=datetime.datetime.now, db_index=True)
+######################### End PingAn Group related ##########################
+
+
 ########## signal handlers
 from django.db.models.signals import post_save
 from .utils import refresh_cache
+from registration.signals import user_activated
+from seahub.utils import is_ldap_user
 
 @receiver(user_registered)
 def clean_email_id_cache(sender, **kwargs):
@@ -239,3 +253,15 @@ def remove_user_for_inst_deleted(sender, **kwargs):
     inst_name = kwargs.get("inst_name", "")
     Profile.objects.filter(institution=inst_name).update(institution="")
 
+@receiver(user_activated)
+def update_ldap_user_info(sender, **kwargs):
+    user = kwargs['user']
+    if not is_ldap_user(user):
+        return
+
+    try:
+        info = LDAPSyncUserInfo.objects.get(user=user.username)
+        info.activated_at = datetime.datetime.now()
+        info.save()
+    except LDAPSyncUserInfo.DoesNotExist:
+        logger.error('Failed to update LDAPSyncUserInfo, user %s does not exists.' % user.username)
