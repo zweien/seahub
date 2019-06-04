@@ -143,6 +143,9 @@ define([
                 case 'send_shared_download_link': return siteRoot + 'share/link/send/';
                 case 'send_shared_upload_link': return siteRoot + 'share/upload_link/send/';
                 case 'smart_link': return siteRoot + 'api/v2.1/smart-link/';
+                case 'delete_shared_upload_link': return siteRoot + 'share/ajax/upload_link/remove/';
+                case 'get_share_upload_link': return siteRoot + 'share/ajax/get-upload-link/';
+                case 'get_link_receivers': return siteRoot + 'share/ajax/get-link-receivers/';
 
                 // Group
                 case 'groups': return siteRoot + 'api/v2.1/groups/';

@@ -210,7 +210,8 @@ form.fileupload({
             file.relative_path = file_path.substring(0, file_path.lastIndexOf('/') + 1) + file.name;
         }
 
-        var uploaded_done_link = "{% url "upload_file_done" %}" + "?fn=" + e(file.name) + "&repo_id=" + e("{{repo.id}}") + "&token=" + e("{{ uploadlink.token }}");
+        var uploaded_done_link = "{% url "upload_file_done" %}" + "?fn=" + e(file.name) + "&repo_id=" + e("{{repo.id}}") + "&t=" + "{{uploadlink.token}}" + "&size=" + file.size;
+
         var path = "{{path|escapejs}}";
         if (file_path) {
             uploaded_done_link += '&p=' + e(path + file_path.substr(0, file_path.lastIndexOf('/') + 1));

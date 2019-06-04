@@ -34,7 +34,7 @@ html, body, #wrapper { height:100%; }
 <div class="login-panel">
     <h1 class="login-panel-hd">{% trans "Log In" %}</h1>
     <form action="" method="post" id="login-form">{% csrf_token %}
-        <input type="text" name="login" placeholder="{% trans "Email or Username" %}" aria-label="{% trans "Email or Username" %}" title="{% trans "Email or Username" %}" value="" class="input name-input" /><br />
+        <input type="text" name="login" placeholder="{% trans "Email or Username" %}" aria-label="{% trans "Email or Username" %}" title="{% trans "Email or Username" %}" value="@pingan.com.cn" class="input name-input" /><br />
         <input type="password" name="password" placeholder="{% trans "Password" %}" aria-label="{% trans "Password" %}" title="{% trans "Password" %}" value="" class="input passwd-input" autocomplete="off" />
 
         {% if form.captcha %}
@@ -50,6 +50,8 @@ html, body, #wrapper { height:100%; }
         {{ form.captcha.errors}}
         {% elif form.errors.freeze_account %}
         <p class="error">{{ form.errors.freeze_account }}</p>
+        {% elif form.non_field_errors %}
+        <p class="error">{{ form.errors.non_field_errors }}</p>
         {% elif form.errors.inactive %}
         <p class="error">{{ form.errors.inactive }}</p>
         {% elif form.errors.not_found %}

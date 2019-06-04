@@ -42,19 +42,46 @@ body {
               </p>
             {% else %}
             <p class="share-by ellipsis">{% trans "Shared by: " %}{{ shared_by|email2nickname }}</p>
+            {% if share_to %}
+            <p>发送对象：{{ share_to }}</p>
+            <p>外发需求：{{ note }}</p>
+            {% endif %}
             {% endif %}
         </div>
 
         <div class="fright js-file-op">
+            {% if need_verify %}
+            <span id="pass" class="hide" style="color: #60b044;">{% if other_info %}审核结果：该文件已被 {{ other_info }} 通过。{% else %}{% trans "Review result: This file is passed by you." %}{% endif %}</span>
+
+            <span id="veto" class="hide" style="color: #900;">{% if other_info %}审核结果：该文件已被 {{ other_info }}否决。{% else %}{% trans "Review result: This file is vetoed by you." %}{% endif %}</span>
+            <span class="review-btns hide">
+                <button id="pass-btn">{% trans "Approve"%}</button>
+                <button id="veto-btn" style="color: #900;">{% trans "Veto"%}</button>
+            </span>
+
+            <form action="" class="pass-or-veto-msg-form hide">
+                <h3>审批意见</h3>
+                <textarea name="msg" class="textarea"></textarea><br />
+                <p class="error hide"></p>
+                <button type="submit" class="submit">提交</button>
+            </form>
+            {% else %}
+
             {% if permissions.can_download %}
             {% if request.user.is_authenticated and request.user.username != shared_by %}
               {% if save_to_link %}
               <button data="{{save_to_link}}" id="save" class="shared-file-op-btn">{% trans "Save to..."%}</button>
               {% endif %}
             {% endif %}
+            {% endif %}
+
             {% if not traffic_over_limit %}
               <a href="{% if from_shared_dir %}?p={{path|urlencode}}&dl=1{% else %}?dl=1{% endif %}" class="obv-btn shared-file-op-btn">{% trans "Download" %} ({{file_size|filesizeformat}})</a>
             {% endif %}
+            {% endif %}
+
+            {% if show_dlp_veto_msg %}
+            <p class="dlp-msg" style="color: red;">注意：DLP扫描提示关键字扫描风险。</p>
             {% endif %}
         </div>
     </div>
@@ -165,6 +192,70 @@ $(document)
     }
 });
 {% endif %}
+$(function() {
+    var show_pass = function() {
+        $('#pass').show();
+        $('#veto').hide();
+        $('.review-btns').hide();
+    };
+    var show_veto = function() {
+        $('#pass').hide();
+        $('#veto').show();
+        $('.review-btns').hide();
+    };
+    var show_review_btns = function() {
+        $('#pass').hide();
+        $('#veto').hide();
+        $('.review-btns').show();
+    };
+    {% if user_pass or other_pass %}
+        show_pass();
+    {% elif user_veto or other_veto %}
+        show_veto();
+    {% else %}
+        show_review_btns();
+    {% endif %}
+    $('#pass-btn, #veto-btn').click(function() {
+        var $form = $('.pass-or-veto-msg-form');
+        $form.modal();
+        $('#simplemodal-container').css({'width':'auto', 'height':'auto'})
+        if ($(this).attr('id') == 'pass-btn') {
+            $form.attr('id', 'pass-msg-form');
+        } else {
+            $form.attr('id', 'veto-msg-form');
+        }
+    });
+    $('.pass-or-veto-msg-form').submit(function() {
+        var $form = $(this);
+        var msg = $.trim($('[name="msg"]', $form).val());
+        var $error = $('.error', $form);
+        var pass = $form.attr('id') == 'pass-msg-form' ? true : false;
+        $.ajax({
+            url: '{% url "ajax_change_dl_link_status" %}',
+            type: 'POST',
+            dataType: 'html',
+            beforeSend: prepareCSRFToken,
+            data: {
+                's': pass ? 1 : 2,
+                't': '{{shared_token}}',
+                'msg': msg
+            },
+            success: function() {
+                $.modal.close();
+                feedback('审核完成。', 'success');
+                if (pass) {
+                    show_pass();
+                } else {
+                    show_veto();
+                }
+            },
+            error: function() {
+                $error.html('出错了，请刷新页面或稍后再试。').show();
+            }
+        });
+        return false;
+    });
+});
 </script>
 {% if enable_watermark %}
 <script type="text/javascript" src="{{ MEDIA_URL }}js/watermark.js"></script>

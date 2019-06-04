@@ -1178,7 +1178,7 @@
     <h3 class="hd" id="dialogTitle"><%= title %></h3>
     <div id="share-tabs" class="nav-con-tabs">
         <ul class="nav-con-tabs-nav">
-            <% if (!repo_encrypted && can_generate_share_link) { %>
+            <% if (!repo_encrypted && can_generate_share_link && !is_dir) { %>
             <li class="tab"><a href="#download-link-share" class="a">{% trans "Share Link" %}</a></li>
             <% } %>
             <% if (is_dir) { %>
@@ -1210,8 +1210,7 @@
                             <span title="{% trans "Show" %}" class="icon-eye show-or-hide-password cspt" role="button" tabindex="0" aria-label="{% trans "Show" %}"></span>
                             <span title="{% trans "Generate a random password" %}" class="icon-magic generate-random-password cspt" role="button" tabindex="0" aria-label="{% trans "Generate a random password" %}"></span>
                         </div>
-                        <label for="passwd-again">{% trans "Password again" %}</label><br />
-                        <input type="password" name="password_again" class="input" id="passwd-again" />
+                        {# removed 'password again' here, for ping-an #}
                     </div>
 
                     {% if share_link_expire_days_min > 0 or share_link_expire_days_max > 0 %}
@@ -1342,6 +1341,7 @@
                             <input type="text" readonly="readonly" value="" class="shared-link hide" />
                             <span class="shared-link-copy-icon icon-copy" title="{% trans "Copy" %}"></span>
                         </dd>
+                        <span class="vam">{% trans 'Password: ' %}</span><span id="upload-link-password"></span>
                     </dl>
                     {% if user.permissions.can_send_share_link_mail %}
                         <button id="send-upload-link">{% trans 'Send' %}</button>
@@ -1577,6 +1577,12 @@
         <li class="tab<% if (cur_tab == 'drafts') { %> tab-cur<% } %>">
             <a href="{{ SITE_ROOT }}drafts/" class="ellipsis" title="{% trans "Drafts" %}"><span aria-hidden="true" class="sf2-icon-draft"></span>{% trans "Drafts" %}</a>
         </li>
+
+        <% if (is_file_link_reviser) { %>
+        <li class="tab">
+            <a href="{{ SITE_ROOT }}share/links/verify/"><span aria-hidden="true" class="sf2-icon-wrench"></span>{% trans "Links Audit" %}</a>
+        </li>
+        <% } %>
 
         <li class="tab" id="share-admin-nav">
             <a href="#" class="ellipsis" title="{% trans "Share Admin" %}"><span class="toggle-icon <% if (show_share_admin) { %> icon-caret-down <% } else { %> icon-caret-left <% } %> fright" aria-hidden="true"></span><span aria-hidden="true" class="sf2-icon-wrench"></span>{% trans "Share Admin" %}</a>

@@ -127,7 +127,10 @@
                 </label>
             </dd>
             {% endif %}
-
+            <dt>{% trans "Approving Chain" %}</dt>
+            <dd>
+                {{ approving_chain_info }}
+            </dd>
         </dl>
 
         <form id="set-name-form" method="post" action="" class="hide">{% csrf_token %}

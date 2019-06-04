@@ -1,0 +1,194 @@
+{% extends "sysadmin/base.html" %}
+{% load i18n %}
+{% block cur_revisers %}tab-cur{% endblock %}
+
+{% block left_panel %}{{block.super}}
+<form action="{% url 'sys_reviser_admin' %}" method="get" class="side-search-form">
+    <input type="text" name="filter" class="input" value="" placeholder="{% trans "Search department or user..." %}" />
+</form>
+{% endblock %}
+
+{% block right_panel %}
+<div class="tabnav ovhd">
+    <ul class="tabnav-tabs fleft">
+        <li class="tabnav-tab tabnav-tab-cur"><a href="{% url 'sys_reviser_admin' %}">{% trans "Department" %}</a></li>
+        <li class="tabnav-tab"><a href="{% url 'sys_reviser_admin_user_map' %}">{% trans "User" %}</a></li>
+        <li class="tabnav-tab"><a href="{% url 'sys_reviser_admin_ignore' %}">{% trans "Ignore List" %}</a></li>
+    </ul>
+    <div class="fright">
+        <button id="add-reviser-btn"><img src="{{ MEDIA_URL }}img/add.png" alt="" class="add vam" /><span class="vam">{% trans "Add reviser" %}</span></button>
+    </div>
+
+</div>
+
+<form id="add-reviser-form" action="" method="post" class="hide">{% csrf_token %}
+    <label for="department-name">{% trans "Department" %}</label><br />
+    <input type="text" name="department-name" id="department-name" style="width: 482px;" placeholder="{% trans "Department" %}" class="input" /><br />
+
+    <label for="chain">审批链 </label><span style="margin-left: 5px;">顺序审批（->）</span> <span>协同审批（|）</span><br />
+    <textarea name="chain" id="chain" style="padding: 2px 3px;" cols="80" rows="5" placeholder="A -> B | C -> D"></textarea>
+
+    <br />
+    <p class="error hide"></p>
+    <button id="test-chain" class="submit">测试</button>
+    <button type="submit" class="submit">{% trans "Submit" %}</button>
+</form>
+
+{% if chain_list %}
+<table>
+    <tr>
+        <th width="30%">{% trans "Department" %}</th>
+        <th width="60%">审批链<span style="margin-left: 5px;">顺序审批（->）</span> <span>协同审批（|）</span></th>
+        <th width="10%"><!--operation--></th>
+    </tr>
+    {% for r in chain_list %}
+    <tr data-dept_name="{{r.department}}" data-chain="{{r.chain_raw}}">
+        <td>{{ r.department }}</td>
+        <td>{{ r.chain }}</td>
+        <td>
+          <a href="#" class="edit op vh">{% trans "Edit" %}</a>
+          <a href="#" data-url="{% url "reviser_remove" r.department %}" class="remove op vh">{% trans "Delete" %}</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<div id="paginator">
+    {% if current_page != 1 %}
+    <a href="?page={{ prev_page }}&per_page={{ per_page }}">{% trans "Previous" %}</a>
+    {% endif %}
+    {% if page_next %}
+    <a href="?page={{ next_page }}&per_page={{ per_page }}">{% trans "Next" %}</a>
+    {% endif %}
+</div>
+
+{% else %}
+<div class="empty-tips">
+    <h2 class="alc">{% trans "No reviser has been added yet" %}</h2>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_script %}
+<script type="text/javascript">
+$('#test-chain').click(function() {
+    var form = $('#add-reviser-form'),
+        form_id = form.attr('id'),
+        department_name = $.trim(form.children('[name="department-name"]').val()),
+        chain = $.trim(form.children('[name="chain"]').val());
+
+    var data = {
+        'department_name': department_name,
+        'chain': chain
+    };
+
+    // reset color
+    $('#add-reviser-form .error').css('color', '');
+
+    $.ajax({
+        url: '{% url 'reviser_test' %}',
+        type: 'POST',
+        datatype: 'json',
+        cache: 'false',
+        beforeSend: prepareCSRFToken,
+        data: data,
+        success: function(data) {
+            var msg = '测试通过，以下审批链信息会被写入数据库：<br>';
+            msg += data.ret;
+
+            $('#add-reviser-form .error').html(msg).removeClass('hide').css('color', 'green');
+            $("#simplemodal-container").css({'height':'auto'});
+
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            if (jqXHR.responseText) {
+                apply_form_error(form_id, $.parseJSON(jqXHR.responseText).error);
+            } else {
+                apply_form_error(form_id, "{% trans "Failed. Please check the network." %}");
+            }
+        }
+    });
+    return false;
+});
+
+$('#add-reviser-form').submit(function() {
+    var form = $(this),
+        form_id = $(this).attr('id'),
+        submit_btn = $(this).find('[type="submit"]'),
+
+        department_name = $.trim(form.children('[name="department-name"]').val()),
+        chain = $.trim(form.children('[name="chain"]').val());
+
+    // reset color
+    $('#add-reviser-form .error').css('color', '');
+    
+    // check department name
+    if (!department_name) {
+        apply_form_error(form_id, "{% trans "Department cannot be blank" %}");
+        return false;
+    }
+
+    if (!chain) {
+        apply_form_error(form_id, "{% trans "Chain cannot be blank" %}");
+        return false;
+    }
+    
+    var data = {
+        'department_name': department_name,
+        'chain': chain
+    };
+
+    disable(submit_btn);
+
+    $.ajax({
+        url: '{% url 'reviser_add' %}',
+        type: 'POST',
+        datatype: 'json',
+        cache: 'false',
+        beforeSend: prepareCSRFToken,
+        data: data,
+        success: function() {
+            location.reload(true);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            if (jqXHR.responseText) {
+                apply_form_error(form_id, $.parseJSON(jqXHR.responseText).error);
+            } else {
+                apply_form_error(form_id, "{% trans "Failed. Please check the network." %}");
+            }
+            enable(submit_btn);
+        }
+    });
+    return false;
+});
+$('#add-reviser-btn').click(function() {
+    $('#add-reviser-form').find("input[type=text]").val("");
+    $('#chain', '#add-reviser-form').val("");
+
+    $('#add-reviser-form').modal();
+    $('#simplemodal-container').css({'width':'auto', 'height': 'auto'});
+});
+
+
+addConfirmTo($('.remove'), {
+    'title': "Remove reviser",
+    'con': "Sure ?",
+    'post': true
+});
+
+$('.edit').click(function() {
+    var dept_name = $($(this).closest('tr')).data('dept_name');
+    var chain = $($(this).closest('tr')).data('chain');
+
+    // fill form value
+    $('#department-name', '#add-reviser-form').val(dept_name);
+    $('#chain', '#add-reviser-form').val(chain);
+
+    $('#add-reviser-form').modal();
+    $('#simplemodal-container').css({'width':'auto', 'height': 'auto'});
+
+    return false;
+}); 
+</script>
+{% endblock %}
