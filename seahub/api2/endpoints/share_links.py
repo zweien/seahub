@@ -85,6 +85,7 @@ def get_share_link_info(fileshare):
     data['expire_date'] = expire_date
     data['is_expired'] = fileshare.is_expired()
     data['permissions'] = fileshare.get_permissions()
+    data['password'] = fileshare.get_password()
     return data
 
 def check_permissions_arg(request):
@@ -301,8 +302,8 @@ class ShareLinks(APIView):
                 fs = FileShare.objects.create_dir_link(username, repo_id, path,
                                                        password, expire_date,
                                                        permission=perm, org_id=org_id)
-
         link_info = get_share_link_info(fs)
+        link_info['password'] = password
         return Response(link_info)
 
 class ShareLink(APIView):

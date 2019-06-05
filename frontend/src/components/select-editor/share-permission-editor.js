@@ -30,7 +30,7 @@ class SharePermissionEditor extends React.Component {
         currentOption={this.props.currentPermission}
         onOptionChanged={this.props.onPermissionChanged}
         translateOption={this.translatePermission}
-        translateExplanation={this.translateExplanation}
+        //translateExplanation={this.translateExplanation}
       />
     );
   }

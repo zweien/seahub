@@ -14,6 +14,7 @@ class SharedLinkInfo {
     this.link = object.link;
     this.view_cnt = object.view_cnt;
     this.ctime = object.ctime;
+    this.password = object.password;
   }
 
 }

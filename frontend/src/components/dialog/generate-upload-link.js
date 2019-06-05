@@ -131,7 +131,7 @@ class GenerateUploadLink extends React.Component {
   }
 
   render() {
-
+    let isZHCN = window.app.config.lang === 'zh-cn';
     let passwordLengthTip = gettext('(at least {passwordLength} characters)');
     passwordLengthTip = passwordLengthTip.replace('{passwordLength}', shareLinkPasswordMinLength);
     if (this.state.sharedUploadInfo) {
@@ -139,6 +139,7 @@ class GenerateUploadLink extends React.Component {
       return (
         <div>
           <Form className="mb-4">
+            <p className="text-secondary font-weight-normal">{isZHCN ? '你可以共享生成好的链接给别人，他们就能通过这个链接上传文件到这个文件夹。' : 'You can share the generated link to others and then they can upload files to this directory via the link.'}</p>
             <FormGroup>
               <dt className="text-secondary font-weight-normal">{gettext('Upload Link:')}</dt>
               <dd className="d-flex">
@@ -153,6 +154,7 @@ class GenerateUploadLink extends React.Component {
     }
     return (
       <Form className="generate-upload-link">
+        <p className="text-secondary font-weight-normal">{isZHCN ? '你可以共享生成好的链接给别人，他们就能通过这个链接上传文件到这个文件夹。' : 'You can share the generated link to others and then they can upload files to this directory via the link.'}</p>
         <FormGroup check>
           <Label check>
             <Input type="checkbox" onChange={this.addPassword}/>{'  '}{gettext('Add password protection')} 

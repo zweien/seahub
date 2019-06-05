@@ -338,6 +338,27 @@ export const Utils = {
           break;
       }
     }
+    let isZHCN = window.app.config.lang === 'zh-cn';
+    if (repo.encrypted) {
+      title = gettext('Encrypted library');
+    } else if (repo.is_admin) { // shared with 'admin' permission
+      title = isZHCN ? '共同所有者' : 'Co-Owner';
+    } else {
+      switch(permission) {
+        case 'rw':
+          title = isZHCN ? '读写，可同步' : 'Read-Write-Sync';
+          break;
+        case 'r':
+          title = isZHCN ? '只读，可同步' : 'Read-Only-Sync';
+          break;
+        case 'cloud-edit':
+          title = isZHCN ? '仅云端读写' : 'Edit-on-Cloud';
+          break;
+        case 'preview':
+          title = isZHCN ? '仅云端只读' : 'View-on-Cloud';
+          break;
+      }
+    }
     return title;
   },
 
@@ -377,6 +398,24 @@ export const Utils = {
         break;
       case 'preview':
         title = gettext('Preview-on-Cloud');
+        break;
+    }
+    let isZHCN = window.app.config.lang === 'zh-cn';
+    switch(permission) {
+      case 'rw':
+        title = isZHCN ? '读写，可同步' : 'Read-Write-Sync';
+        break;
+      case 'r':
+        title = isZHCN ? '只读，可同步' : 'Read-Only-Sync';
+        break;
+      case 'admin':
+        title = isZHCN ? '共同所有者' : 'Co-Owner';
+        break;
+      case 'cloud-edit':
+        title = isZHCN ? '仅云端读写' : 'Edit-on-Cloud';
+        break;
+      case 'preview':
+        title = isZHCN ? '仅云端只读' : 'View-on-Cloud';
         break;
     }
     return title;

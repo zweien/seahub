@@ -15,6 +15,7 @@ from seahub.utils import normalize_file_path, normalize_dir_path, gen_token,\
     get_service_url
 from seahub.constants import PERMISSION_READ, PERMISSION_ADMIN
 from seahub.utils import is_valid_org_id
+from seahub.utils.hasher import AESPasswordHasher
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -76,7 +77,7 @@ def check_share_link_common(request, sharelink, is_upload_link=False):
         msg = _("Password can\'t be empty")
         return (False, msg)
 
-    if check_password(password, sharelink.password):
+    if password == sharelink.get_password():
         set_share_link_access(request, sharelink.token, is_upload_link)
         return (True, msg)
     else:
@@ -84,11 +85,17 @@ def check_share_link_common(request, sharelink, is_upload_link=False):
         return (False, msg)
 
 class FileShareManager(models.Manager):
+
+    def _make_password(self, password):
+
+        aes = AESPasswordHasher()
+        return aes.encode(password)
+
     def _add_file_share(self, username, repo_id, path, s_type,
                         password=None, expire_date=None,
                         permission='view_download', org_id=None):
         if password is not None:
-            password_enc = make_password(password)
+            password_enc = self._make_password(password)
         else:
             password_enc = None
 
@@ -364,6 +371,18 @@ class FileShare(models.Model):
         else:
             assert False
         return perm_dict
+
+    def get_password(self):
+
+        if self.password:
+            try:
+                aes = AESPasswordHasher()
+                return aes.decode(self.password)
+            except Exception:
+                logger.error('Error occurred when get share link password')
+                return ''
+        else:
+            return ''
 
 
 class OrgFileShareManager(models.Manager):
