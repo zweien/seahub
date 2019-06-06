@@ -84,10 +84,11 @@ class Content extends Component {
               <tr>
                 <th width="4%">{/*icon*/}</th>
                 <th width="31%"><a className="d-block table-sort-op" href="#" onClick={this.sortByName}>{gettext('Name')} {sortByName && sortIcon}</a></th>
-                <th width="14%">{gettext('Library')}</th>
-                <th width="20%">{gettext('Permission')}</th>
-                <th width="7%">{gettext('Visits')}</th>
-                <th width="14%"><a className="d-block table-sort-op" href="#" onClick={this.sortByTime}>{gettext('Expiration')} {sortByTime && sortIcon}</a></th>
+                <th width="12%">{gettext('Library')}</th>
+                <th width="10%">{'状态'}</th>
+                <th width="17%">{gettext('Permission')}</th>
+                <th width="4%">{gettext('Visits')}</th>
+                <th width="12%"><a className="d-block table-sort-op" href="#" onClick={this.sortByTime}>{gettext('Expiration')} {sortByTime && sortIcon}</a></th>
                 <th width="10%">{/*Operations*/}</th>
               </tr>
             </thead>
@@ -207,6 +208,14 @@ class Item extends Component {
     let iconVisibility = this.state.showOpIcon ? '' : ' invisible';
     let linkIconClassName = 'sf2-icon-link action-icon' + iconVisibility; 
     let deleteIconClassName = 'sf2-icon-delete action-icon' + iconVisibility;
+    let statusStr = '';
+    if (item.status === 'verifing') {
+      statusStr = '正在审核';
+    } else if (item.status === 'pass') {
+      statusStr = '通过';
+    } else if (item.status === 'veto') {
+      statusStr = '否决';
+    }
     return (
       <tr onMouseEnter={this.handleMouseOver} onMouseLeave={this.handleMouseOut}>
         <td><img src={iconUrl} width="24" /></td>
@@ -217,6 +226,7 @@ class Item extends Component {
           }
         </td>
         <td><Link to={`${siteRoot}library/${item.repo_id}/${item.repo_name}/`}>{item.repo_name}</Link></td>
+        <td>{statusStr}</td>
         <td>
           <ShareLinksPermissionEditor 
             isTextMode={true}
