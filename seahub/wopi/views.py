@@ -204,8 +204,8 @@ class WOPIFilesView(APIView):
         result['SupportsLocks'] = True
         result['SupportsGetLock'] = True
 
-        result['DisablePrint'] = True if not can_download else False
-        result['HidePrintOption'] = True if not can_download else False
+        result['DisablePrint'] = True
+        result['HidePrintOption'] = True
 
         result['SupportsUpdate'] = True if can_edit else False
         result['UserCanWrite'] = True if can_edit else False
