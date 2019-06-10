@@ -800,7 +800,8 @@ def view_lib_file(request, repo_id, path):
         send_file_access_msg(request, repo, path, 'web')
         return render(request, template, return_dict)
 
-    elif filetype in (DOCUMENT, SPREADSHEET):
+#    elif filetype in (DOCUMENT, SPREADSHEET):
+    elif fileext in OFFICE_WEB_APP_FILE_EXTENSION + OFFICE_WEB_APP_EDIT_FILE_EXTENSION:
 
         if repo.encrypted:
             return_dict['err'] = _(u'The library is encrypted, can not open file online.')
