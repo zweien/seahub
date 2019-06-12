@@ -614,3 +614,73 @@ class ShareLinkDirents(APIView):
             result.append(dirent_info)
 
         return Response({'dirent_list': result})
+
+
+class VerifyShareLinks(APIView):
+
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = (UserRateThrottle,)
+
+    def get(self, request):
+        """List file links that need verify.
+        列出审批员“待审批的外链”／“已审批的外链”：
+
+        1. 从审批链（部门－部门长－稽核）里得到当前用户能审批的部门列表；--> dept_list
+        2. 得到所有属于(dept_list)的成员（注意：精确到部门即可，基础架构部项目组和基础架构步系统组同属一个审批链）；--> users
+        3. 得到所有 users 的外链；--> fileshares
+        4. 遍历每条外链（fileshare）,
+            如果外链状态为审核通过／否决，则加入“已审批”列表；（待审核的外链，我有可能已经审核完毕，等待其他人审核）
+            否则得到该外链的审批人员的邮箱列表，
+              如果当前用户属于这个列表，并且“通过”或“否决”该外链，则加入“已审批”列表；
+              否则，加入“待审批”列表。
+        """
+        username = request.user.username
+        from seahub.share.views_pingan import get_verify_link_by_user
+        from seahub.share.constants import STATUS_VERIFING, STATUS_PASS
+        verifing_links, verified_links = get_verify_link_by_user(username)
+        cmp_func = lambda x, y: cmp(y.ctime, x.ctime)
+        verifing_links = sorted(verifing_links, cmp=cmp_func)
+        verified_links = sorted(verified_links, cmp=cmp_func)
+
+        status = request.GET.get('status', '')
+        if status == STATUS_VERIFING:
+            links = verifing_links
+        elif status == STATUS_PASS:
+            links = verified_links
+        else:
+            links = verified_links + verifing_links
+
+        links_info = []
+        for link in links:
+            link_info = get_share_link_info(link)
+            link_info['verbose_status_str'] = link.get_verbose_status_str()
+            link_info['short_status_str'] = link.get_short_status_str()
+            link_info['first_download_time'] = link.first_dl_time
+            links_info.append(link_info)
+
+        return Response({'data': links_info})
+
+
+class VerifyShareLink(APIView):
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = (UserRateThrottle,)
+
+    def delete(self, request, token):
+        try:
+            fs = FileShare.objects.get(token=token)
+        except FileShare.DoesNotExist:
+            error_msg = 'Share link %s not found.' % token
+            return api_error(status.HTTP_404_NOT_FOUND, error_msg)
+
+        username = request.user.username
+        from seahub.share.models import FileShareApprovalStatus
+        from seahub.share.constants import STATUS_VERIFING
+        fs_s = FileShareApprovalStatus.objects.filter(share_link=fs, email=username)
+        for ele in fs_s:
+            if ele.status != STATUS_VERIFING:
+                continue
+            ele.delete()
+
+        return Response({'success': True})

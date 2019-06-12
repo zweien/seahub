@@ -18,6 +18,7 @@ import ShareAdminLibraries from './pages/share-admin/libraries';
 import ShareAdminFolders from './pages/share-admin/folders';
 import ShareAdminShareLinks from './pages/share-admin/share-links';
 import ShareAdminUploadLinks from './pages/share-admin/upload-links';
+import VerifyingLinks from './pages/verify-links/verifying-links';
 import SharedLibraries from './pages/shared-libs/shared-libs';
 import MyLibraries from './pages/my-libs/my-libs';
 import MyLibDeleted from './pages/my-libs/my-libs-deleted';
@@ -42,6 +43,7 @@ const ShareAdminLibrariesWrapper = MainContentWrapper(ShareAdminLibraries);
 const ShareAdminFoldersWrapper = MainContentWrapper(ShareAdminFolders);
 const ShareAdminShareLinksWrapper = MainContentWrapper(ShareAdminShareLinks);
 const ShareAdminUploadLinksWrapper = MainContentWrapper(ShareAdminUploadLinks);
+const VerifyingLinksWrapper = MainContentWrapper(VerifyingLinks);
 
 class App extends Component {
 
@@ -238,6 +240,7 @@ class App extends Component {
               <ShareAdminFoldersWrapper path={siteRoot + 'share-admin-folders'} onShowSidePanel={this.onShowSidePanel} onSearchedClick={this.onSearchedClick} />
               <ShareAdminShareLinksWrapper path={siteRoot + 'share-admin-share-links'} onShowSidePanel={this.onShowSidePanel} onSearchedClick={this.onSearchedClick} />
               <ShareAdminUploadLinksWrapper path={siteRoot + 'share-admin-upload-links'} onShowSidePanel={this.onShowSidePanel} onSearchedClick={this.onSearchedClick} />
+              <VerifyingLinksWrapper path={siteRoot + 'verifying-links'} onShowSidePanel={this.onShowSidePanel} onSearchedClick={this.onSearchedClick}/>
               <SharedLibrariesWrapper path={siteRoot + 'shared-libs'} onShowSidePanel={this.onShowSidePanel} onSearchedClick={this.onSearchedClick} />
               <MyLibraries path={siteRoot + 'my-libs'} onShowSidePanel={this.onShowSidePanel} onSearchedClick={this.onSearchedClick} />
               <MyLibDeleted path={siteRoot + 'my-libs/deleted/'} onSearchedClick={this.onSearchedClick} />
