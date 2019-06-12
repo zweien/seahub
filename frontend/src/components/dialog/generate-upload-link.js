@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import copy from 'copy-to-clipboard';
 import { Button, Form, FormGroup, Label, Input, InputGroup, InputGroupAddon, Alert } from 'reactstrap';
@@ -19,7 +19,7 @@ class GenerateUploadLink extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      showPasswordInput: false,
+      showPasswordInput: true,
       passwordVisible: false,
       password: '',
       passwdnew: '',
@@ -122,7 +122,7 @@ class GenerateUploadLink extends React.Component {
     let sharedUploadInfo = this.state.sharedUploadInfo;
     seafileAPI.deleteUploadLink(sharedUploadInfo.token).then(() => {
       this.setState({
-        showPasswordInput: false,
+        showPasswordInput: true,
         password: '',
         passwordnew: '',
         sharedUploadInfo: null,
@@ -138,6 +138,7 @@ class GenerateUploadLink extends React.Component {
       let sharedUploadInfo = this.state.sharedUploadInfo;
       return (
         <div>
+          <Label className="text font-weight-normal">{'你可以共享生成好的链接给别人，他们就能通过这个链接上传文件到这个文件夹。'}</Label>
           <Form className="mb-4">
             <FormGroup>
               <dt className="text-secondary font-weight-normal">{gettext('Upload Link:')}</dt>
@@ -146,6 +147,14 @@ class GenerateUploadLink extends React.Component {
                 <span className="far fa-copy action-icon" onClick={this.onCopyUploadLink}></span>
               </dd>
             </FormGroup>
+            {sharedUploadInfo.password && (
+                <FormGroup className="mb-0">
+                  <dt className="text-secondary font-weight-normal">{'密码：'}</dt>
+                  <dd className="d-flex">
+                    <span>{sharedUploadInfo.password}</span>{' '}
+                  </dd>
+                </FormGroup>
+              )}
           </Form>
           <Button onClick={this.deleteUploadLink}>{gettext('Delete')}</Button>
         </div>
@@ -155,7 +164,7 @@ class GenerateUploadLink extends React.Component {
       <Form className="generate-upload-link">
         <FormGroup check>
           <Label check>
-            <Input type="checkbox" onChange={this.addPassword}/>{'  '}{gettext('Add password protection')} 
+            <Input type="checkbox" readOnly disabled checked/>{'  '}{gettext('Add password protection')} 
           </Label>
         </FormGroup>
         {this.state.showPasswordInput &&

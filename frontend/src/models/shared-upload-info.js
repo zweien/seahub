@@ -10,6 +10,7 @@ class SharedUploadInfo {
     this.ctime = object.ctime;
     this.token = object.token;
     this.view_cnt = object.view_cnt;
+    this.password = object.password;
   }
 
 }

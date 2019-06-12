@@ -29,16 +29,19 @@ class ShareDialog extends React.Component {
   }
 
   getInitialActiveTab = () => {
-    const {repoEncrypted, userPerm, enableDirPrivateShare} = this.props;
+    const {repoEncrypted, userPerm, enableDirPrivateShare, itemType} = this.props;
     const enableShareLink = !repoEncrypted && canGenerateShareLink;
     const enableUploadLink = !repoEncrypted && canGenerateUploadLink && userPerm == 'rw';
 
-    if (enableShareLink) {
+    if (itemType === 'file' && enableShareLink) {
       return 'shareLink';
-    } else if (enableUploadLink) {
-      return 'uploadLink';
-    } else if (enableDirPrivateShare) {
-      return 'shareToUser';
+    }
+    if (itemType === 'library' || itemType === 'dir') {
+      if (enableUploadLink) {
+        return 'uploadLink';
+      } else if (enableDirPrivateShare) {
+        return 'shareToUser';
+      }
     }
   }
 
@@ -59,13 +62,6 @@ class ShareDialog extends React.Component {
       <Fragment>
         <div className="share-dialog-side">
           <Nav pills vertical>
-            {enableShareLink &&
-              <NavItem>
-                <NavLink className={activeTab === 'shareLink' ? 'active' : ''} onClick={this.toggle.bind(this, 'shareLink')}>
-                  {gettext('Share Link')}
-                </NavLink>
-              </NavItem>
-            }
             {enableUploadLink &&
               <NavItem>
                 <NavLink className={activeTab === 'uploadLink' ? 'active' : ''} onClick={this.toggle.bind(this, 'uploadLink')}>
@@ -91,15 +87,6 @@ class ShareDialog extends React.Component {
         </div>
         <div className="share-dialog-main">
           <TabContent activeTab={this.state.activeTab}>
-            {enableShareLink &&
-              <TabPane tabId="shareLink">
-                <GenerateShareLink 
-                  itemPath={this.props.itemPath} 
-                  repoID={this.props.repoID}
-                  closeShareDialog={this.props.toggleDialog} 
-                />
-              </TabPane>
-            }
             {enableUploadLink &&
               <TabPane tabId="uploadLink">
                 <GenerateUploadLink 

@@ -1,4 +1,5 @@
 # Copyright (c) 2012-2016 Seafile Ltd.
+# -*- coding: utf-8 -*-
 import os
 import stat
 import logging
@@ -85,6 +86,24 @@ def get_share_link_info(fileshare):
     data['expire_date'] = expire_date
     data['is_expired'] = fileshare.is_expired()
     data['permissions'] = fileshare.get_permissions()
+    data['password'] = fileshare.get_password()
+
+    from seahub.share.models import FileShareExtraInfo
+    if fileshare.pass_verify():
+        data['status'] = 'pass'
+        data['pass_time'] = fileshare.get_pass_time()
+        extra_info = FileShareExtraInfo.objects.filter(share_link=fileshare)
+        if len(extra_info) > 0:
+            data['receivers'] = [x.sent_to for x in extra_info]
+        else:
+            data['receivers'] = []
+    elif fileshare.is_verifing():
+        data['status'] = 'verifing'
+    elif fileshare.reject_verify():
+        data['status'] = 'veto'
+    else:
+        data['status'] = ''
+
     return data
 
 def check_permissions_arg(request):
@@ -253,6 +272,23 @@ class ShareLinks(APIView):
         else:
             expire_date = timezone.now() + relativedelta(days=expire_days)
 
+        sent_to = request.data.get('sent_to', '').split(',')
+        sent_emails = [x.strip() for x in sent_to if x.strip()]
+        if len(sent_emails) == 0:
+            error_msg = _("Please enter the recipient's email.")
+            return api_error(status.HTTP_400_BAD_REQUEST, error_msg)
+
+        from seahub.utils import is_valid_email
+        for e in sent_emails:
+            if not is_valid_email(e):
+                error_msg = u"非法邮箱地址：%s" % e
+                return api_error(status.HTTP_400_BAD_REQUEST, error_msg)
+
+        note = request.data.get('note', '')
+        if not note:
+            error_msg = _('Please enter note.')
+            return api_error(status.HTTP_400_BAD_REQUEST, error_msg)
+
         perm = check_permissions_arg(request)
 
         # resource check
@@ -294,6 +330,17 @@ class ShareLinks(APIView):
                 fs = FileShare.objects.create_file_link(username, repo_id, path,
                                                         password, expire_date,
                                                         permission=perm, org_id=org_id)
+
+            from seahub.share.settings import ENABLE_FILESHARE_CHECK
+            from seahub.share.signals import file_shared_link_created
+            if ENABLE_FILESHARE_CHECK:
+                from seahub.share.models import FileShareExtraInfo
+                try:
+                    for email in sent_to:
+                        FileShareExtraInfo.objects.create(share_link=fs,
+                                sent_to=email, note=note)
+                except Exception as e:
+                    logger.error(e)
 
         elif s_type == 'd':
             fs = FileShare.objects.get_dir_link_by_path(username, repo_id, path)

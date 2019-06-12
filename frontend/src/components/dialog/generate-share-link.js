@@ -6,6 +6,8 @@ import { Button, Form, FormGroup, Label, Input, InputGroup, InputGroupAddon, Ale
 import { gettext, shareLinkExpireDaysMin, shareLinkExpireDaysMax, shareLinkExpireDaysDefault, shareLinkPasswordMinLength } from '../../utils/constants';
 import { seafileAPI } from '../../utils/seafile-api';
 import { Utils } from '../../utils/utils';
+import { Link } from '@reach/router';
+import { siteRoot } from '../../utils/constants';
 import SharedLinkInfo from '../../models/shared-link-info';
 import toaster from '../toast';
 import Loading from '../loading';
@@ -22,7 +24,7 @@ class GenerateShareLink extends React.Component {
     super(props);
     this.state = {
       isValidate: false,
-      isShowPasswordInput: false,
+      isShowPasswordInput: true,
       isPasswordVisible: false,
       isExpireChecked: false,
       password: '',
@@ -33,19 +35,20 @@ class GenerateShareLink extends React.Component {
       isNoticeMessageShow: false,
       isLoading: true,
       isShowSendLink: false,
-      sendLinkEmails: '',
-      sendLinkMessage: '',
+      sendTo: '',
+      note: '',
       sendLinkErrorMessage: '',
+      isFileSizeExceedLimit: false,
     };
     this.permissions = {
-      'can_edit': false, 
+      'can_edit': false,
       'can_download': true
     };
     this.isExpireDaysNoLimit = (parseInt(shareLinkExpireDaysMin) === 0 && parseInt(shareLinkExpireDaysMax) === 0);
   }
 
   componentDidMount() {
-    let path = this.props.itemPath; 
+    let path = this.props.itemPath;
     let repoID = this.props.repoID;
     seafileAPI.getShareLink(repoID, path).then((res) => {
       if (res.data.length !== 0) {
@@ -56,6 +59,13 @@ class GenerateShareLink extends React.Component {
         });
       } else {
         this.setState({isLoading: false});
+      }
+    });
+    seafileAPI.getFileInfo(repoID, path).then((res) => {
+      if (res) {
+        this.setState({
+          isFileSizeExceedLimit: (res.data.size / (Math.pow(10, 6))) >= window.app.pageOptions.shareLinkMinFileSize,
+        });
       }
     });
   }
@@ -103,7 +113,7 @@ class GenerateShareLink extends React.Component {
       this.permissions = {
         'can_edit': false,
         'can_download': false
-      };     
+      };
     }
   }
 
@@ -112,14 +122,28 @@ class GenerateShareLink extends React.Component {
     if (isValid) {
       this.setState({errorInfo: ''});
       let { itemPath, repoID } = this.props;
-      let { password, expireDays } = this.state;
+      let { password, expireDays, sendTo, note } = this.state;
       let permissions = this.permissions;
       permissions = JSON.stringify(permissions);
-      seafileAPI.createShareLink(repoID, itemPath, password, expireDays, permissions).then((res) => {
+      this.createShareLink(repoID, itemPath, password, expireDays, permissions, sendTo, note).then((res) => {
         let sharedLinkInfo = new SharedLinkInfo(res.data);
         this.setState({sharedLinkInfo: sharedLinkInfo});
       });
     }
+  }
+
+  createShareLink(repoID, path, password, expireDays, permissions, sendTo, note) {
+    const url = seafileAPI.server + '/api/v2.1/share-links/';
+    var FormData = require('form-data');
+    let form = new FormData();
+    form.append('path', path);
+    form.append('repo_id', repoID);
+    form.append('permissions', permissions);
+    form.append('password', password);
+    form.append('expire_days', expireDays);
+    form.append('sent_to', sendTo);
+    form.append('note', note);
+    return seafileAPI._sendPostRequest(url, form);
   }
 
   onCopySharedLink = () => {
@@ -128,7 +152,7 @@ class GenerateShareLink extends React.Component {
     toaster.success(gettext('Share link is copied to the clipboard.'));
     this.props.closeShareDialog();
   }
-  
+
   onCopyDownloadLink = () => {
     let downloadLink = this.state.sharedLinkInfo.link + '?dl';
     copy(downloadLink);
@@ -142,7 +166,7 @@ class GenerateShareLink extends React.Component {
       this.setState({
         password: '',
         passwordnew: '',
-        isShowPasswordInput: false,
+        isShowPasswordInput: true,
         expireDays: shareLinkExpireDaysDefault,
         isExpireChecked: false,
         errorInfo: '',
@@ -218,14 +242,14 @@ class GenerateShareLink extends React.Component {
           return false;
         }
       }
-      
+
       if (minDays === 0 && maxDays !== 0 ) {
         if (expireDays > maxDays) {
           this.setState({errorInfo: 'Please enter valid days'});
           return false;
         }
       }
-      
+
       if (minDays !== 0 && maxDays !== 0) {
         if (expireDays < minDays || expireDays > maxDays) {
           this.setState({errorInfo: 'Please enter valid days'});
@@ -235,7 +259,35 @@ class GenerateShareLink extends React.Component {
       this.setState({expireDays: expireDays});
     }
 
+    if (!this.validateSendToNoteParameters()) {
+      return false;
+    }
+
     return true;
+  }
+
+  validateSendToNoteParameters = () => {
+    if (!this.state.sendTo) {
+      this.setState({errorInfo: 'Please enter recipient\'s email'});
+      return false;
+    }
+
+    if (!this.state.note) {
+      this.setState({errorInfo: 'Please enter note.'});
+      return false;
+    }
+
+    return true;
+  }
+
+  onSendToChange = (event) => {
+    if (this.state.sendLinkErrorMessage) this.setState({ sendLinkErrorMessage: '' });
+    this.setState({sendTo: event.target.value});
+  }
+
+  onNoteChange = (event) => {
+    if (this.state.sendLinkErrorMessage) this.setState({ sendLinkErrorMessage: '' });
+    this.setState({note: event.target.value});
   }
 
   onNoticeMessageToggle = () => {
@@ -294,88 +346,90 @@ class GenerateShareLink extends React.Component {
 
     if (this.state.sharedLinkInfo) {
       let sharedLinkInfo = this.state.sharedLinkInfo;
-      return (
-        <div>
-          <Form className="mb-4">
-            <FormGroup className="mb-0">
-              <dt className="text-secondary font-weight-normal">{gettext('Link:')}</dt>
-              <dd className="d-flex">
-                <span>{sharedLinkInfo.link}</span>{' '}
-                {sharedLinkInfo.is_expired ?
-                  <span className="err-message">({gettext('Expired')})</span> :
-                  <span className="far fa-copy action-icon" onClick={this.onCopySharedLink}></span>
-                }
-              </dd>
-            </FormGroup>
-            {!sharedLinkInfo.is_dir && (  //just for file
-              <FormGroup className="mb-0">
-                <dt className="text-secondary font-weight-normal">{gettext('Direct Download Link:')}</dt>
-                <dd className="d-flex">
-                  <span>{sharedLinkInfo.link}?dl=1</span>{' '}
-                  {sharedLinkInfo.is_expired ?
-                    <span className="err-message">({gettext('Expired')})</span> :
-                    <span className="far fa-copy action-icon" onClick={this.onCopyDownloadLink}></span>
-                  }
-                </dd>
-              </FormGroup>
-            )}
-            {sharedLinkInfo.expire_date && (
-              <FormGroup className="mb-0">
-                <dt className="text-secondary font-weight-normal">{gettext('Expiration Date:')}</dt>
-                <dd>{moment(sharedLinkInfo.expire_date).format('YYYY-MM-DD hh:mm:ss')}</dd>
-              </FormGroup>
-            )}
-          </Form>
-          {(!this.state.isShowSendLink && !this.state.isNoticeMessageShow) &&
+      if (sharedLinkInfo.status === 'verifing') {
+        return (
+          <div>
+            <p>{'您的共享外链正在等待审核。'}<Link to={siteRoot + 'share-admin-share-links'}>{'查看详情。'}</Link></p>
+          </div>
+        );
+      } else if (sharedLinkInfo.status === 'pass') {
+        return (
+          <div>
+            <Label className="text font-weight-normal">{'该文件下载链接已通过外发至邮箱：' + sharedLinkInfo.receivers +'（发送于 ' + sharedLinkInfo.pass_time + '）'}</Label>
+            <Form className='mb-4'>
+              {sharedLinkInfo.password && (
+                <FormGroup className="mb-0">
+                  <dt className="text-secondary font-weight-normal">{'密码：'}</dt>
+                  <dd className="d-flex">
+                    <span>{sharedLinkInfo.password}</span>{' '}
+                  </dd>
+                </FormGroup>
+              )}
+              {sharedLinkInfo.expire_date && (
+                <FormGroup className="mb-0">
+                  <dt className="text-secondary font-weight-normal">{gettext('Expiration Date:')}</dt>
+                  <dd>{moment(sharedLinkInfo.expire_date).format('YYYY-MM-DD hh:mm:ss')}</dd>
+                </FormGroup>
+              )}
+            </Form>
+            {(!this.state.isShowSendLink && !this.state.isNoticeMessageShow) &&
             <Button onClick={this.toggleSendLink} className='mr-2'>{gettext('Send')}</Button>
-          }
-          {this.state.isShowSendLink &&
-            <Fragment>
-              <Form>
-                <FormGroup>
-                  <Label htmlFor="sendLinkEmails" className="text-secondary font-weight-normal">{gettext('Send to')}{':'}</Label>
-                  <Input 
-                    id="sendLinkEmails"
-                    className="w-75"
-                    value={this.state.sendLinkEmails}
-                    onChange={this.onSendLinkEmailsChange}
-                    placeholder={gettext('Emails, separated by \',\'')}
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Label htmlFor="sendLinkMessage" className="text-secondary font-weight-normal">{gettext('Message (optional):')}</Label><br/>
-                  <textarea
-                    className="w-75"
-                    id="sendLinkMessage"
-                    value={this.state.sendLinkMessage}
-                    onChange={this.onSendLinkMessageChange}
-                  ></textarea>
-                </FormGroup>
-              </Form>
-              {this.state.sendLinkErrorMessage && <p className="error">{this.state.sendLinkErrorMessage}</p>}
-              <Button color="primary" onClick={this.sendShareLink}>{gettext('Send')}</Button>{' '}
-              <Button color="secondary" onClick={this.toggleSendLink}>{gettext('Cancel')}</Button>{' '}
-            </Fragment>
-          }
-          {(!this.state.isShowSendLink && !this.state.isNoticeMessageShow) &&
-            <Button onClick={this.onNoticeMessageToggle}>{gettext('Delete')}</Button>
-          }
-          {this.state.isNoticeMessageShow &&
-            <div className="alert alert-warning">
-              <h4 className="alert-heading">{gettext('Are you sure you want to delete the share link?')}</h4>
-              <p className="mb-4">{gettext('If the share link is deleted, no one will be able to access it any more.')}</p>
-              <button className="btn btn-primary" onClick={this.deleteShareLink}>{gettext('Delete')}</button>{' '}
-              <button className="btn btn-secondary" onClick={this.onNoticeMessageToggle}>{gettext('Cancel')}</button>
-            </div>
-          }
-        </div>
-      );
+            }
+            {this.state.isShowSendLink &&
+              <Fragment>
+                <Form>
+                  <FormGroup>
+                    <Label htmlFor="sendLinkEmails" className="text-secondary font-weight-normal">{gettext('Send to')}{':'}</Label>
+                    <Input 
+                      id="sendLinkEmails"
+                      className="w-75"
+                      value={this.state.sendLinkEmails}
+                      onChange={this.onSendLinkEmailsChange}
+                      placeholder={gettext('Emails, separated by \',\'')}
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <Label htmlFor="sendLinkMessage" className="text-secondary font-weight-normal">{gettext('Message (optional):')}</Label><br/>
+                    <textarea
+                      className="w-75"
+                      id="sendLinkMessage"
+                      value={this.state.sendLinkMessage}
+                      onChange={this.onSendLinkMessageChange}
+                    ></textarea>
+                  </FormGroup>
+                </Form>
+                {this.state.sendLinkErrorMessage && <p className="error">{this.state.sendLinkErrorMessage}</p>}
+                <Button color="primary" onClick={this.sendShareLink}>{gettext('Send')}</Button>{' '}
+                <Button color="secondary" onClick={this.toggleSendLink}>{gettext('Cancel')}</Button>{' '}
+              </Fragment>
+            }
+            {(!this.state.isShowSendLink && !this.state.isNoticeMessageShow) &&
+              <Button onClick={this.onNoticeMessageToggle}>{gettext('Delete')}</Button>
+            }
+            {this.state.isNoticeMessageShow &&
+              <div className="alert alert-warning">
+                <h4 className="alert-heading">{gettext('Are you sure you want to delete the share link?')}</h4>
+                <p className="mb-4">{gettext('If the share link is deleted, no one will be able to access it any more.')}</p>
+                <button className="btn btn-primary" onClick={this.deleteShareLink}>{gettext('Delete')}</button>{' '}
+                <button className="btn btn-secondary" onClick={this.onNoticeMessageToggle}>{gettext('Cancel')}</button>
+              </div>
+            }
+          </div>
+        );
+      }
     } else {
+      if (!this.state.isFileSizeExceedLimit) {
+        return(
+        <Form className="generate-share-link">
+          {'文件过小，外发支持的文件应不小于 ' + window.app.pageOptions.shareLinkMinFileSize + ' MB，建议通过邮件平台外发小文件。'}
+        </Form>
+        );
+      } else {
       return (
         <Form className="generate-share-link">
           <FormGroup check>
             <Label check>
-              <Input type="checkbox" onChange={this.onPasswordInputChecked}/>{'  '}{gettext('Add password protection')} 
+              <Input type="checkbox" onChange={this.onPasswordInputChecked} checked readOnly disabled/>{'  '}{gettext('Add password protection')}
             </Label>
           </FormGroup>
           {this.state.isShowPasswordInput &&
@@ -399,7 +453,7 @@ class GenerateShareLink extends React.Component {
                   <Input className="expire-checkbox" type="checkbox" onChange={this.onExpireChecked}/>{'  '}{gettext('Add auto expiration')}
                 </Label>
               </FormGroup>
-              {this.state.isExpireChecked && 
+              {this.state.isExpireChecked &&
                 <FormGroup check>
                   <Label check>
                     <Input className="expire-input expire-input-border" type="text" value={this.state.expireDays} onChange={this.onExpireDaysChanged} readOnly={!this.state.isExpireChecked}/><span className="expir-span">{gettext('days')}</span>
@@ -446,10 +500,33 @@ class GenerateShareLink extends React.Component {
               <Input type="radio" name="radio1" onChange={() => this.setPermission('preview')} />{'  '}{gettext('Preview only')}
             </Label>
           </FormGroup>
+          <Fragment>
+            <FormGroup>
+              <Label htmlFor="sendTo" className="text-secondary font-weight-normal">{'下载链接通知对象'}{':'}</Label>
+              <Input
+                id="sendTo"
+                className="w-75"
+                value={this.state.sendTo}
+                onChange={this.onSendToChange}
+                placeholder={gettext('Emails, separated by \',\'')}
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label htmlFor="note" className="text-secondary font-weight-normal">{'申请原因'}{':'}</Label><br/>
+              <textarea
+                className="w-75"
+                id="note"
+                value={this.state.note}
+                onChange={this.onNoteChange}
+              ></textarea>
+            </FormGroup>
+            {this.state.sendLinkErrorMessage && <p className="error">{this.state.sendLinkErrorMessage}</p>}
+          </Fragment>
           {this.state.errorInfo && <Alert color="danger" className="mt-2">{gettext(this.state.errorInfo)}</Alert>}
           <Button onClick={this.generateShareLink}>{gettext('Generate')}</Button>
         </Form>
       );
+      }
     }
   }
 }

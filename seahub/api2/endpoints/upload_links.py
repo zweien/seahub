@@ -57,6 +57,7 @@ def get_upload_link_info(uls):
     data['link'] = gen_shared_upload_link(token)
     data['token'] = token
     data['username'] = uls.username
+    data['password'] = uls.get_password()
 
     return data
 
