@@ -452,11 +452,7 @@ def ajax_get_link_status(request):
     ret['pass_verify'] = fs.pass_verify()
     ret['sent_at'] = fs.get_pass_time()
 
-    decoded_pwd = fs.get_decoded_password(fs.password)
-    if decoded_pwd:
-        ret['password'] = decoded_pwd
-    else:
-        ret['password'] = _('Unsupported password format, please regenerate link if you want to show password.')
+    ret['password'] = fs.get_password()
 
     return HttpResponse(json.dumps(ret),
                         status=200, content_type=content_type)
