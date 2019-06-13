@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import Account from '../common/account';
 import { gettext, siteRoot, mediaUrl, logoPath, logoWidth, logoHeight, siteTitle } from '../../utils/constants';
-import { Button } from 'reactstrap';
+import { Button, ModalHeader, Modal, ModalBody, ModalFooter, Input, Alert, Row } from 'reactstrap';
 import { Utils } from '../../utils/utils';
+import { serviceURL } from '../../utils/constants';
+import { seafileAPI } from '../../utils/seafile-api';
+import FormData from 'form-data';
 import SaveSharedFileDialog from '../dialog/save-shared-file-dialog';
 import toaster from '../toast';
 import watermark from 'watermark-dom';
@@ -22,7 +25,10 @@ class SharedFileView extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      showSaveSharedFileDialog: false
+      isVerifyDialogShow: false,
+      verifyOperation: '',
+      showSaveSharedFileDialog: false,
+      verifyStatus: 'verifying',    // verifying, pass, veto
     };
   }
 
@@ -42,6 +48,17 @@ class SharedFileView extends React.Component {
     toaster.success(gettext('Successfully saved'), {
       duration: 3
     });
+  }
+
+  onVerifyDialogShow = (operationType) => {
+    this.setState({
+      isVerifyDialogShow: !this.state.isVerifyDialogShow,
+      verifyOperation: operationType
+    });
+  }
+
+  closeVerifyDialog = () => {
+    this.setState({isVerifyDialogShow: !this.state.isVerifyDialogShow});
   }
 
   componentDidMount() {
@@ -83,16 +100,33 @@ class SharedFileView extends React.Component {
           { loginUser && <Account /> }
         </div>
         <div className="shared-file-view-md-main">
-          <div className="shared-file-view-head">
+          <div className="shared-file-view-head" style={{height:'100px'}}>
             <div className="float-left">
               <h2 className="ellipsis" title={fileName}>{fileName}</h2>
               {zipped ?
                 <p className="m-0">{gettext('Current path: ')}{this.renderPath()}</p> :
                 <p className="share-by ellipsis">{gettext('Shared by:')}{'  '}{sharedBy}</p>
               }
+              <small className="share-by ellipsis">{'发送对象：手写的对象'}</small><br/>
+              <small className="share-by ellipsis">{'外发需求：手写的需求'}</small>
             </div>
-            {download &&
-              <div className="float-right">
+            
+            <div className="float-right">
+              {this.state.verifyStatus == 'verifying' &&
+                <Fragment>
+                  <Button onClick={() => {this.onVerifyDialogShow('pass');}} color='success'>{'同意'}</Button>
+                  <span>{' '}</span>
+                  <Button onClick={() => {this.onVerifyDialogShow('veto');}} color='danger'>{'否决'}</Button>
+                </Fragment>
+              }
+              {this.state.verifyStatus == 'pass' && 
+                <Button disabled outline color='success'>{'审核结果：该文件已被你通过'}</Button>
+              }
+              {this.state.verifyStatus == 'veto' && 
+                <Button disabled outline color='danger'>{'审核结果：该文件已被你否决'}</Button>
+              }
+              {download &&
+              <span>
                 {(loginUser && loginUser !== sharedBy) &&
                   <Button color="secondary" id="save"
                     onClick={this.handleSaveSharedFileDialog}>{gettext('Save as ...')}
@@ -101,8 +135,9 @@ class SharedFileView extends React.Component {
                 {!trafficOverLimit &&
                 <a href={`?${zipped ? 'p=' + encodeURIComponent(filePath) + '&' : ''}dl=1`} className="btn btn-success">{gettext('Download')}({Utils.bytesToSize(fileSize)})</a>
                 }
-              </div>
-            }
+              </span>
+              }
+            </div>
           </div>
           {this.props.content}
         </div>
@@ -114,10 +149,83 @@ class SharedFileView extends React.Component {
             handleSaveSharedFile={this.handleSaveSharedFile}
           />
         }
+        {this.state.isVerifyDialogShow && 
+          <VerifyDialog 
+            toggleDialog={this.closeVerifyDialog}
+            verifyOperation={this.state.verifyOperation}
+          />
+        }
       </div>
     );
   }
 }
+
+class VerifyDialog extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      verifyDialogInput: '',
+      inputErrorInfo: '',
+      isShow: false,
+    };
+  }
+
+  handleChange = (e) => {
+    this.setState({
+      verifyDialogInput: e.target.value,
+      inputErrorInfo: '',
+    });
+  }
+
+  submitVerify = () => {
+    let inputStr = this.state.verifyDialogInput;
+    if (inputStr == '' || inputStr.trim() == ''){
+      this.setState({
+        inputErrorInfo: '请输入审核意见',
+      });
+      return;
+    }
+    let status;
+    if(this.props.verifyOperation == 'pass') {
+      status = 1;
+    }else if(this.props.verifyOperation == 'veto'){
+      status = 2;
+    }
+    let tmpArray = document.location.toString().split('/');
+    let token = tmpArray[tmpArray.length - 2];
+    let url = serviceURL + '/ajax/change-download-link-status/';
+    let form = new FormData();
+    form.append('t', token);
+    form.append('s', status);
+    form.append('msg', this.state.verifyDialogInput);
+    seafileAPI._sendPostRequest(url, form);
+  }
+
+  render() {
+    return (
+      <div>
+        <Modal isOpen={true} style={{maxWidth: '420px'}} toggle={this.props.toggleDialog} centered>
+          <ModalHeader toggle={this.props.toggleDialog}>{'审核意见'}</ModalHeader>
+          <ModalBody>
+            <Input 
+              type="textarea"
+              value={this.state.verifyDialogInput}
+              onChange={this.handleChange}
+            />
+            {this.state.inputErrorInfo && 
+              <Alert color="danger" className="mt-2">{this.state.inputErrorInfo}
+              </Alert>
+            }
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={this.submitVerify} className="float-left">{'提交'}</Button>
+          </ModalFooter>
+        </Modal>
+      </div>
+    );
+  }
+}
+
 
 if (enableWatermark) {
   let watermark_txt;
