@@ -1,5 +1,7 @@
 language: python
-python: 2.7.12
+python:
+  - "2.7"
+
 
 cache:
   directories:
@@ -23,7 +25,7 @@ before_install:
   - cd /tmp/seafile-test-deploy && ./bootstrap.sh && cd -
 
 install:
-  - pip install -r dev-requirements.txt --allow-all-external --allow-unverified PIL
+  - pip install -r dev-requirements.txt
   - pip install -r test-requirements.txt
 
 script:
