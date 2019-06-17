@@ -30,6 +30,8 @@ from seahub.utils import is_org_context, send_perm_audit_msg, \
         normalize_file_path, check_filename_with_rename
 from seahub.utils.repo import get_repo_owner, get_available_repo_perms, \
         parse_repo_perm, get_locked_files_by_dir
+from seahub.utils.file_op import ONLINE_OFFICE_LOCK_OWNER
+from seahub.base.templatetags.seahub_tags import email2nickname
 
 from seahub.views import check_folder_permission
 from seahub.settings import MAX_PATH
@@ -1247,6 +1249,20 @@ class ReposAsyncBatchMoveItemView(APIView):
         username = request.user.username
         locked_files = get_locked_files_by_dir(request, src_repo_id, src_parent_dir)
         for dirent in src_dirents:
+
+            if dirent in locked_files.keys():
+                lock_owner = locked_files[dirent]
+                if lock_owner == ONLINE_OFFICE_LOCK_OWNER:
+                    if request.LANGUAGE_CODE == 'zh-cn':
+                        error_msg = u"文件 %s 正在被编辑或2分钟之内被编辑过，暂时无法移动，请稍后再试" % dirent
+                    else:
+                        error_msg = u"The file %s has been being edited within 2 minutes, it can't be moved at the moment, please try again later" % dirent
+                elif lock_owner != username:
+                    if request.LANGUAGE_CODE == 'zh-cn':
+                        error_msg = u"文件已被 %s 锁定，无法移动" % email2nickname(lock_owner)
+                    else:
+                        error_msg = u"The file is locked by %s, it can't be moved" % email2nickname(lock_owner)
+
             # file is locked and lock owner is not current user
             if dirent in locked_files.keys() and \
                     locked_files[dirent] != username:
@@ -1457,6 +1473,20 @@ class ReposSyncBatchMoveItemView(APIView):
         username = request.user.username
         locked_files = get_locked_files_by_dir(request, src_repo_id, src_parent_dir)
         for dirent in src_dirents:
+
+            if dirent in locked_files.keys():
+                lock_owner = locked_files[dirent]
+                if lock_owner == ONLINE_OFFICE_LOCK_OWNER:
+                    if request.LANGUAGE_CODE == 'zh-cn':
+                        error_msg = u"文件 %s 正在被编辑或2分钟之内被编辑过，暂时无法移动，请稍后再试" % dirent
+                    else:
+                        error_msg = u"The file %s has been being edited within 2 minutes, it can't be moved at the moment, please try again later" % dirent
+                elif lock_owner != username:
+                    if request.LANGUAGE_CODE == 'zh-cn':
+                        error_msg = u"文件已被 %s 锁定，无法移动" % email2nickname(lock_owner)
+                    else:
+                        error_msg = u"The file is locked by %s, it can't be moved" % email2nickname(lock_owner)
+
             # file is locked and lock owner is not current user
             if dirent in locked_files.keys() and \
                     locked_files[dirent] != username:
