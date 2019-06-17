@@ -25,6 +25,11 @@
 
 const { UMind, React, ReactDOM } = window;
 
+// 语言环境
+// 中文: zh-CN（默认）
+// 英文: en-US
+{% if request.LANGUAGE_CODE == 'zh-cn' %}
+const locale = 'zh-CN';
 const DEFAULT_DATA = {
   roots: [{
     label: '中心主题',
@@ -37,11 +42,21 @@ const DEFAULT_DATA = {
     }],
   }],
 };
-
-// 语言环境
-// 中文: zh-CN（默认）
-// 英文: en-US
-const locale = 'zh-CN';
+{% else %}
+const locale = 'en-US';
+const DEFAULT_DATA = {
+  roots: [{
+    label: 'Central Topic',
+    children: [{
+      label: 'Main Topic 1',
+    }, {
+      label: 'Main Topic 2',
+    }, {
+      label: 'Main Topic 3',
+    }],
+  }],
+};
+{% endif %}
 
 // 配置数据
 const config = {
