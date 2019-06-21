@@ -2,7 +2,7 @@ import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import MD5 from 'MD5';
 import { UncontrolledTooltip } from 'reactstrap';
-import { gettext, siteRoot, mediaUrl, username, canGenerateShareLink } from '../../utils/constants';
+import { gettext, siteRoot, mediaUrl, username, canGenerateShareLink, canGenerateUploadLink } from '../../utils/constants';
 import { Utils } from '../../utils/utils';
 import { seafileAPI } from '../../utils/seafile-api';
 import URLDecorator from '../../utils/url-decorator';
@@ -433,9 +433,12 @@ class DirentListItem extends React.Component {
     if (currentRepoInfo.permission === 'cloud-edit' || currentRepoInfo.permission === 'preview') {
       return '';
     }
-
-    let isShowShareBtn = (dirent.type === 'dir' && this.props.showShareBtn) || canGenerateShareLink;
-    
+    let isShowShareBtn;
+    if (dirent.type === 'dir' && this.props.enableDirPrivateShare == false && canGenerateUploadLink == false) {
+      isShowShareBtn = false;
+    }else{
+      isShowShareBtn = this.props.showShareBtn || canGenerateShareLink;
+    }
     return (
       <Fragment>
         {selectedDirentList.length > 1 ? 

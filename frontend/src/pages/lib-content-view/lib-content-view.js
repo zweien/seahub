@@ -1498,6 +1498,7 @@ class LibContentView extends React.Component {
       if (!isVirtual && (isRepoOwner || isAdmin)) {
         enableDirPrivateShare = true;
       }
+      showGenerateShareLinkTab = false;
 
       if (showGenerateShareLinkTab || showGenerateUploadLinkTab || enableDirPrivateShare) {
         showShareBtn = true;
