@@ -17,6 +17,7 @@ import EditFileTagDialog from '../dialog/edit-filetag-dialog';
 import LibSubFolderPermissionDialog from '../dialog/lib-sub-folder-permission-dialog';
 
 import '../../css/dirent-list-item.css';
+import { dir } from 'glamor';
 
 const propTypes = {
   path: PropTypes.string.isRequired,
@@ -433,12 +434,17 @@ class DirentListItem extends React.Component {
     if (currentRepoInfo.permission === 'cloud-edit' || currentRepoInfo.permission === 'preview') {
       return '';
     }
-    let isShowShareBtn;
-    if (dirent.type === 'dir' && this.props.enableDirPrivateShare == false && canGenerateUploadLink == false) {
-      isShowShareBtn = false;
-    }else{
-      isShowShareBtn = this.props.showShareBtn || canGenerateShareLink;
+    let isShowShareBtn = this.props.showShareBtn;
+    if (dirent.type === 'dir'){
+      if(this.props.enableDirPrivateShare == false && canGenerateUploadLink == false){
+        isShowShareBtn = false;
+      }
     }
+    // if (dirent.type === 'dir' && this.props.enableDirPrivateShare == false && canGenerateUploadLink == false) {
+    //   isShowShareBtn = false;
+    // }else{
+    //   isShowShareBtn = this.props.showShareBtn || canGenerateShareLink;
+    // }
     return (
       <Fragment>
         {selectedDirentList.length > 1 ? 

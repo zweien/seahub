@@ -1479,6 +1479,7 @@ class LibContentView extends React.Component {
     }
 
     let showShareBtn = false;
+    let showShareBtnToolBar = false;
     let enableDirPrivateShare = false;
     let { currentRepoInfo, repoEncrypted, userPerm } = this.state;
     let isAdmin = currentRepoInfo.is_admin;
@@ -1498,7 +1499,10 @@ class LibContentView extends React.Component {
       if (!isVirtual && (isRepoOwner || isAdmin)) {
         enableDirPrivateShare = true;
       }
-      showGenerateShareLinkTab = false;
+
+      if( showGenerateUploadLinkTab || enableDirPrivateShare ){
+        showShareBtnToolBar = true;
+      }
 
       if (showGenerateShareLinkTab || showGenerateUploadLinkTab || enableDirPrivateShare) {
         showShareBtn = true;
@@ -1535,7 +1539,7 @@ class LibContentView extends React.Component {
             repoEncrypted={this.state.repoEncrypted}
             isGroupOwnedRepo={this.state.isGroupOwnedRepo}
             userPerm={this.state.userPerm}
-            showShareBtn={showShareBtn}
+            showShareBtn={showShareBtnToolBar}
             enableDirPrivateShare={enableDirPrivateShare}
             onAddFile={this.onAddFile}
             onAddFolder={this.onAddFolder}
