@@ -69,6 +69,16 @@ body {
       fileType: '{{ filetype }}',
       fileExt: '{{ fileext }}',
       commitID: '{{ current_commit.id }}' || '{{ repo.head_cmmt_id }}',
+      shareTo: '{{ share_to }}',
+      note: '{{ note }}',
+
+      needVerify: {% if need_verify %}true{% else %}false{% endif %},
+      userPass: {% if user_pass %}true{% else %}false{% endif %},
+      userVeto: {% if user_veto %}true{% else %}false{% endif %},
+      otherPass: {% if other_pass %}true{% else %}false{% endif %},
+      otherVeto: {% if other_veto %}true{% else %}false{% endif %},
+      otherInfo: {% if other_info %}true{% else %}false{% endif %},
+      showDLPVetoMsg: {% if show_dlp_veto_msg %}true{% else %}false{% endif %},
 
       // for 'view file in shared dir'
       {% if zipped %}
