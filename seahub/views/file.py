@@ -1107,17 +1107,17 @@ def _download_file_from_share_link(request, fileshare):
         messages.error(request, _(u'Unable to download file.'))
 ######################### Start PingAn Group related ########################
     # record donwload time
-    FileShareDownloads.objects.add(fileshare, username)
+    FileShareDownloads.objects.add(fileshare, request.user.username)
 ######################### End PingAn Group related ##########################
 
     return HttpResponseRedirect(gen_file_get_url(dl_token, filename))
 
 @ensure_csrf_cookie
-@share_link_audit
-@share_link_login_required
+# @share_link_audit
+# @share_link_login_required
 @share_link_approval_for_pingan
 @share_link_passwd_check_for_pingan
-def view_shared_file(request, fileshare):
+def view_shared_file(request, fileshare, *args, **kwargs):
     """
     View file via shared link.
     Download share file if `dl` in request param.
@@ -1295,31 +1295,34 @@ def view_shared_file(request, fileshare):
     desc_for_ogp = _(u'Share link for %s.') % filename
     icon_path_for_ogp = file_icon_filter(filename, size=192)
 
-    return render(request, template, {
-            'repo': repo,
-            'obj_id': obj_id,
-            'path': path,
-            'file_name': filename,
-            'file_size': file_size,
-            'shared_token': token,
-            'access_token': access_token,
-            'fileext': fileext,
-            'raw_path': raw_path,
-            'shared_by': shared_by,
-            'err': ret_dict['err'],
-            'file_content': ret_dict['file_content'],
-            'encoding': ret_dict['encoding'],
-            'file_encoding_list': ret_dict['file_encoding_list'],
-            'filetype': ret_dict['filetype'],
-            'accessible_repos': accessible_repos,
-            'save_to_link': save_to_link,
-            'traffic_over_limit': traffic_over_limit,
-            'permissions': permissions,
-            'enable_watermark': ENABLE_WATERMARK,
-            'file_share_link': file_share_link,
-            'desc_for_ogp': desc_for_ogp,
-            'icon_path_for_ogp': icon_path_for_ogp
-            })
+    return_dict = {
+        'repo': repo,
+        'obj_id': obj_id,
+        'path': path,
+        'file_name': filename,
+        'file_size': file_size,
+        'shared_token': token,
+        'access_token': access_token,
+        'fileext': fileext,
+        'raw_path': raw_path,
+        'shared_by': shared_by,
+        'err': ret_dict['err'],
+        'file_content': ret_dict['file_content'],
+        'encoding': ret_dict['encoding'],
+        'file_encoding_list': ret_dict['file_encoding_list'],
+        'filetype': ret_dict['filetype'],
+        'accessible_repos': accessible_repos,
+        'save_to_link': save_to_link,
+        'traffic_over_limit': traffic_over_limit,
+        'permissions': permissions,
+        'enable_watermark': ENABLE_WATERMARK,
+        'file_share_link': file_share_link,
+        'desc_for_ogp': desc_for_ogp,
+        'icon_path_for_ogp': icon_path_for_ogp
+        }
+
+    return_dict.update(kwargs)  # append args from `shared_link_approval`
+    return render(request, template, return_dict)
 
 @share_link_audit
 @share_link_login_required

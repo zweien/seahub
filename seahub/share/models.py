@@ -25,12 +25,12 @@ from seaserv import ccnet_api
 from seahub.base.templatetags.seahub_tags import email2nickname
 from seahub.profile.models import DetailedProfile
 from seahub.share.constants import STATUS_VERIFING, STATUS_PASS, STATUS_VETO
-from seahub.share.hashers import make_password, check_password, decode_password
 from seahub.share.settings import ENABLE_FILESHARE_CHECK
 from seahub.utils import is_valid_email
 from seahub.utils.ip import get_remote_ip
 from seahub.utils.mail import send_pafile_html_email_with_dj_template
 from seahub.settings import SITE_NAME
+from seahub.utils.hasher import AESPasswordHasher
 ######################### End PingAn Group related ##########################
 
 # Get an instance of a logger
@@ -93,7 +93,7 @@ def check_share_link_common(request, sharelink, is_upload_link=False):
         msg = _("Password can\'t be empty")
         return (False, msg)
 
-    if check_password(password, sharelink.password):
+    if password == sharelink.get_password():
         set_share_link_access(request, sharelink.token, is_upload_link)
         return (True, msg)
     else:
@@ -101,11 +101,16 @@ def check_share_link_common(request, sharelink, is_upload_link=False):
         return (False, msg)
 
 class FileShareManager(models.Manager):
+
+    def _make_password(self, password):
+        aes = AESPasswordHasher()
+        return aes.encode(password)
+
     def _add_file_share(self, username, repo_id, path, s_type,
                         password=None, expire_date=None,
                         permission='view_download', org_id=None):
         if password is not None:
-            password_enc = make_password(password)
+            password_enc = self._make_password(password)
         else:
             password_enc = None
 
@@ -341,6 +346,17 @@ class FileShare(models.Model):
                                   default=PERM_VIEW_DL)
 
     objects = FileShareManager()
+
+    def get_password(self):
+        if self.password:
+            try:
+                aes = AESPasswordHasher()
+                return aes.decode(self.password)
+            except Exception:
+                logger.error('Error occurred when get share link password')
+                return ''
+        else:
+            return ''
 
     def is_file_share_link(self):
         return True if self.s_type == 'f' else False
@@ -621,6 +637,11 @@ class OrgFileShare(models.Model):
     objects = OrgFileShareManager()
 
 class UploadLinkShareManager(models.Manager):
+
+    def _make_password(self, password):
+        aes = AESPasswordHasher()
+        return aes.encode(password)
+
     def _get_upload_link_by_path(self, username, repo_id, path):
         ufs = list(super(UploadLinkShareManager, self).filter(repo_id=repo_id).filter(
             username=username).filter(path=path))
@@ -638,7 +659,7 @@ class UploadLinkShareManager(models.Manager):
         path = normalize_dir_path(path)
         token = gen_token(max_length=config.SHARE_LINK_TOKEN_LENGTH)
         if password is not None:
-            password_enc = make_password(password)
+            password_enc = self._make_password(password)
         else:
             password_enc = None
         uls = super(UploadLinkShareManager, self).create(
@@ -676,6 +697,17 @@ class UploadLinkShare(models.Model):
     password = models.CharField(max_length=128, null=True)
     expire_date = models.DateTimeField(null=True)
     objects = UploadLinkShareManager()
+
+    def get_password(self):
+        if self.password:
+            try:
+                aes = AESPasswordHasher()
+                return aes.decode(self.password)
+            except Exception:
+                logger.error('Error occurred when get share link password')
+                return ''
+        else:
+            return ''
 
     def is_encrypted(self):
         return True if self.password is not None else False

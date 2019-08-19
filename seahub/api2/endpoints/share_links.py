@@ -1,4 +1,5 @@
 # Copyright (c) 2012-2016 Seafile Ltd.
+# -*- coding: utf-8 -*-
 import os
 import stat
 import logging
@@ -40,6 +41,10 @@ from seahub.settings import SHARE_LINK_EXPIRE_DAYS_MAX, \
         ENABLE_SHARE_LINK_AUDIT, ENABLE_VIDEO_THUMBNAIL, \
         THUMBNAIL_ROOT
 from seahub.wiki.models import Wiki
+
+from seahub.share.settings import ENABLE_FILESHARE_CHECK
+from seahub.share.signals import file_shared_link_created
+from seahub.share.share_link_checking import check_share_link
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +91,26 @@ def get_share_link_info(fileshare):
     data['expire_date'] = expire_date
     data['is_expired'] = fileshare.is_expired()
     data['permissions'] = fileshare.get_permissions()
+    data['password'] = fileshare.get_password()
+
+    from seahub.share.models import FileShareExtraInfo
+    if fileshare.pass_verify():
+        data['status'] = 'pass'
+        data['pass_time'] = fileshare.get_pass_time()
+        extra_info = FileShareExtraInfo.objects.filter(share_link=fileshare)
+        if len(extra_info) > 0:
+            data['receivers'] = [x.sent_to for x in extra_info]
+        else:
+            data['receivers'] = []
+    elif fileshare.is_verifing():
+        data['status'] = 'verifing'
+    elif fileshare.reject_verify():
+        data['status'] = 'veto'
+    else:
+        data['status'] = ''
+
+    data['verbose_status_str'] = fileshare.get_verbose_status_str()
+
     return data
 
 def check_permissions_arg(request):
@@ -259,6 +284,23 @@ class ShareLinks(APIView):
         else:
             expire_date = timezone.now() + relativedelta(days=expire_days)
 
+        sent_to = request.data.get('sent_to', '').split(',')
+        sent_emails = [x.strip() for x in sent_to if x.strip()]
+        if len(sent_emails) == 0:
+            error_msg = _("Please enter the recipient's email.")
+            return api_error(status.HTTP_400_BAD_REQUEST, error_msg)
+
+        from seahub.utils import is_valid_email
+        for e in sent_emails:
+            if not is_valid_email(e):
+                error_msg = u"非法邮箱地址：%s" % e
+                return api_error(status.HTTP_400_BAD_REQUEST, error_msg)
+
+        note = request.data.get('note', '')
+        if not note:
+            error_msg = _('Please enter note.')
+            return api_error(status.HTTP_400_BAD_REQUEST, error_msg)
+
         perm = check_permissions_arg(request)
 
         # resource check
@@ -302,6 +344,11 @@ class ShareLinks(APIView):
             fs = FileShare.objects.create_file_link(username, repo_id, path,
                                                     password, expire_date,
                                                     permission=perm, org_id=org_id)
+
+            if ENABLE_FILESHARE_CHECK:
+                file_shared_link_created.send(
+                    sender=fs, sent_to=sent_emails, note=note)
+                check_share_link(request, fs, repo)
 
         elif s_type == 'd':
             fs = FileShare.objects.get_dir_link_by_path(username, repo_id, path)
@@ -577,3 +624,73 @@ class ShareLinkDirents(APIView):
             result.append(dirent_info)
 
         return Response({'dirent_list': result})
+
+
+class VerifyShareLinks(APIView):
+
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = (UserRateThrottle,)
+
+    def get(self, request):
+        """List file links that need verify.
+        列出审批员“待审批的外链”／“已审批的外链”：
+
+        1. 从审批链（部门－部门长－稽核）里得到当前用户能审批的部门列表；--> dept_list
+        2. 得到所有属于(dept_list)的成员（注意：精确到部门即可，基础架构部项目组和基础架构步系统组同属一个审批链）；--> users
+        3. 得到所有 users 的外链；--> fileshares
+        4. 遍历每条外链（fileshare）,
+            如果外链状态为审核通过／否决，则加入“已审批”列表；（待审核的外链，我有可能已经审核完毕，等待其他人审核）
+            否则得到该外链的审批人员的邮箱列表，
+              如果当前用户属于这个列表，并且“通过”或“否决”该外链，则加入“已审批”列表；
+              否则，加入“待审批”列表。
+        """
+        username = request.user.username
+        from seahub.share.views_pingan import get_verify_link_by_user
+        from seahub.share.constants import STATUS_VERIFING, STATUS_PASS
+        verifing_links, verified_links = get_verify_link_by_user(username)
+        cmp_func = lambda x, y: cmp(y.ctime, x.ctime)
+        verifing_links = sorted(verifing_links, cmp=cmp_func)
+        verified_links = sorted(verified_links, cmp=cmp_func)
+
+        status = request.GET.get('status', '')
+        if status == str(STATUS_VERIFING):
+            links = verifing_links
+        elif status == str(STATUS_PASS):
+            links = verified_links
+        else:
+            links = verified_links + verifing_links
+
+        links_info = []
+        for link in links:
+            link_info = get_share_link_info(link)
+            link_info['verbose_status_str'] = link.get_verbose_status_str()
+            link_info['short_status_str'] = link.get_short_status_str()
+            link_info['first_download_time'] = link.first_dl_time
+            links_info.append(link_info)
+
+        return Response({'data': links_info})
+
+
+class VerifyShareLink(APIView):
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = (UserRateThrottle,)
+
+    def delete(self, request, token):
+        try:
+            fs = FileShare.objects.get(token=token)
+        except FileShare.DoesNotExist:
+            error_msg = 'Share link %s not found.' % token
+            return api_error(status.HTTP_404_NOT_FOUND, error_msg)
+
+        username = request.user.username
+        from seahub.share.models import FileShareApprovalStatus
+        from seahub.share.constants import STATUS_VERIFING
+        fs_s = FileShareApprovalStatus.objects.filter(share_link=fs, email=username)
+        for ele in fs_s:
+            if ele.status != STATUS_VERIFING:
+                continue
+            ele.delete()
+
+        return Response({'success': True})

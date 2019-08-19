@@ -9,8 +9,7 @@ import os
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from django.utils import timezone
 from django.utils.encoding import smart_text
 from django.utils.translation import ugettext as _
@@ -77,10 +76,10 @@ def list_file_share_verify(request):
     verifing_links = sorted(verifing_links, cmp=cmp_func)
     verified_links = sorted(verified_links, cmp=cmp_func)
 
-    return render_to_response('share/links_verify.html', {
+    return render(request, 'share/links_verify.html', {
             "verifing_links": verifing_links,
             "verified_links": verified_links,
-    }, context_instance=RequestContext(request))
+    })
 
 @login_required
 def remove_file_share_verify(request, sid):
@@ -180,7 +179,7 @@ def export_verified_links(request):
     wb.save(response)
     return response
 
-@login_required_ajax
+#@login_required_ajax
 @require_POST
 def ajax_change_dl_link_status(request):
     """Approve or veto a shared link.
@@ -452,11 +451,7 @@ def ajax_get_link_status(request):
     ret['pass_verify'] = fs.pass_verify()
     ret['sent_at'] = fs.get_pass_time()
 
-    decoded_pwd = fs.get_decoded_password(fs.password)
-    if decoded_pwd:
-        ret['password'] = decoded_pwd
-    else:
-        ret['password'] = _('Unsupported password format, please regenerate link if you want to show password.')
+    ret['password'] = fs.get_password()
 
     return HttpResponse(json.dumps(ret),
                         status=200, content_type=content_type)

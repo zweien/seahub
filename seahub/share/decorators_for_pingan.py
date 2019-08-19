@@ -2,8 +2,7 @@
 
 from django.conf import settings
 from django.http import HttpResponseRedirect, Http404
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
+from django.shortcuts import render, get_object_or_404
 from django.utils.http import urlquote
 from django.utils.translation import ugettext as _
 
@@ -67,7 +66,6 @@ def share_link_approval_for_pingan(func):
 
             for obj in chain_status_list:
                 if get_chain_step_sibling_type(obj):  # siblings
-                    sibling_type = obj[0]  # can be 'op_or' or 'op_and'
                     siblings = obj[1:]
                     if req_user not in [x.email for x in siblings]:
                         # request user is not in current step, go to next step
@@ -170,11 +168,9 @@ def share_link_passwd_check_for_pingan(func):
                 incr_share_link_decrypt_failed_attempts(ip)
                 d.update({'password': request.POST.get('password', ''),
                           'verify_code': request.POST.get('verify_code', '')})
-                return render_to_response(validation_tmpl, d,
-                                          context_instance=RequestContext(request))
+                return render(request, validation_tmpl, d)
         else:
             if show_captcha_share_link_password_form(ip):
                 d.update({'form': CaptchaSharedLinkPasswordForm})
-            return render_to_response(validation_tmpl, d,
-                                      context_instance=RequestContext(request))
+            return render(request, validation_tmpl, d)
     return _decorated

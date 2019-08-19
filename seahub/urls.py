@@ -37,7 +37,8 @@ from seahub.api2.endpoints.address_book.members import AddressBookGroupsSearchMe
 from seahub.api2.endpoints.group_members import GroupMembers, GroupMembersBulk, GroupMember
 from seahub.api2.endpoints.search_group import SearchGroup
 from seahub.api2.endpoints.share_links import ShareLinks, ShareLink, \
-        ShareLinkOnlineOfficeLock, ShareLinkDirents
+        ShareLinkOnlineOfficeLock, ShareLinkDirents, VerifyShareLinks, \
+        VerifyShareLink
 from seahub.api2.endpoints.shared_folders import SharedFolders
 from seahub.api2.endpoints.shared_repos import SharedRepos, SharedRepo
 from seahub.api2.endpoints.upload_links import UploadLinks, UploadLink, \
@@ -220,6 +221,7 @@ urlpatterns = [
     url(r'^share-admin-folders/$', react_fake_view, name="share_admin_folders"),
     url(r'^share-admin-share-links/$', react_fake_view, name="share_admin_share_links"),
     url(r'^share-admin-upload-links/$', react_fake_view, name="share_admin_upload_links"),
+    url(r'^verifying-links/$', react_fake_view, name="share_admin_verifying_links"),
     url(r'^shared-libs/$', react_fake_view, name="shared_libs"),
     url(r'^my-libs/$', react_fake_view, name="my_libs"),
     url(r'^groups/$', react_fake_view, name="groups"),
@@ -301,6 +303,10 @@ urlpatterns = [
     url(r'^api/v2.1/shared-repos/(?P<repo_id>[-0-9a-f]{36})/$', SharedRepo.as_view(), name='api-v2.1-shared-repo'),
 
     ## user::shared-download-links
+
+    url(r'^api/v2.1/verify-share-links/$', VerifyShareLinks.as_view(), name='api-v2.1-verify-share-links'),
+    url(r'^api/v2.1/verify-share-links/(?P<token>[a-f0-9]+)/$', VerifyShareLink.as_view(), name='api-v2.1-verify-share-link'),
+
     url(r'^api/v2.1/share-links/$', ShareLinks.as_view(), name='api-v2.1-share-links'),
     url(r'^api/v2.1/share-links/(?P<token>[a-f0-9]+)/$', ShareLink.as_view(), name='api-v2.1-share-link'),
     url(r'^api/v2.1/share-links/(?P<token>[a-f0-9]+)/dirents/$', ShareLinkDirents.as_view(), name='api-v2.1-share-link-dirents'),
