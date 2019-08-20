@@ -13,7 +13,7 @@ import { hideMenu, showMenu } from '../context-menu/actions';
 import TextTranslation from '../../utils/text-translation';
 import MoveDirentDialog from '../dialog/move-dirent-dialog';
 import CopyDirentDialog from '../dialog/copy-dirent-dialog';
-import ShareDialog from '../dialog/share-dialog';
+import ShareDialogPingan from '../dialog/share-dialog-pingan';
 import ZipDownloadDialog from '../dialog/zip-download-dialog';
 import EditFileTagDialog from '../dialog/edit-filetag-dialog';
 import Rename from '../../components/dialog/rename-grid-item-dialog';
@@ -627,7 +627,7 @@ class DirentGridView extends React.Component{
         }
         {this.state.isShareDialogShow &&
           <ModalPortal>
-            <ShareDialog 
+            <ShareDialogPingan 
               itemType={dirent.type}
               itemName={dirent.name}
               itemPath={direntPath}

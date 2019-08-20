@@ -13,7 +13,7 @@ import Loading from '../../components/loading';
 import EmptyTip from '../../components/empty-tip';
 import LibsMobileThead from '../../components/libs-mobile-thead';
 import ModalPotal from '../../components/modal-portal';
-import ShareDialog from '../../components/dialog/share-dialog';
+import ShareDialogPingan from '../../components/dialog/share-dialog-pingan';
 import SortOptionsDialog from '../../components/dialog/sort-options';
 
 class Content extends Component {
@@ -247,7 +247,7 @@ class Item extends Component {
         </tr>
         {this.state.isShowSharedDialog && (
           <ModalPotal>
-            <ShareDialog 
+            <ShareDialogPingan 
               itemType={'library'}
               itemName={data.repo_name}
               itemPath={'/'}
@@ -297,7 +297,7 @@ class Item extends Component {
         </tr>
         {this.state.isShowSharedDialog && (
           <ModalPotal>
-            <ShareDialog 
+            <ShareDialogPingan 
               itemType={'library'}
               itemName={data.repo_name}
               itemPath={'/'}

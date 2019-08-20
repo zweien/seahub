@@ -6,7 +6,7 @@ import { Link } from '@reach/router';
 import { Utils } from '../../utils/utils';
 import { gettext, siteRoot, isPro, username, folderPermEnabled, isSystemStaff } from '../../utils/constants';
 import ModalPortal from '../../components/modal-portal';
-import ShareDialog from '../../components/dialog/share-dialog';
+import ShareDialogPingan from '../../components/dialog/share-dialog-pingan';
 import LibSubFolderPermissionDialog from '../../components/dialog/lib-sub-folder-permission-dialog';
 import DeleteRepoDialog from '../../components/dialog/delete-repo-dialog';
 import Rename from '../rename';
@@ -396,7 +396,7 @@ class SharedRepoListItem extends React.Component {
         </tr>
         {this.state.isShowSharedDialog && (
           <ModalPortal>
-            <ShareDialog 
+            <ShareDialogPingan 
               itemType={'library'}
               itemName={repo.repo_name}
               itemPath={'/'}
@@ -464,7 +464,7 @@ class SharedRepoListItem extends React.Component {
         </tr>
         {this.state.isShowSharedDialog && (
           <ModalPortal>
-            <ShareDialog 
+            <ShareDialogPingan 
               itemType={'library'}
               itemName={repo.repo_name}
               itemPath={'/'}

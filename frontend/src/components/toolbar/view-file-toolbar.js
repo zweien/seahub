@@ -6,7 +6,7 @@ import { seafileAPI } from '../../utils/seafile-api';
 import { Utils } from '../../utils/utils';
 import toaster from '../toast';
 import ModalPotal from '../modal-portal';
-import ShareDialog from '../dialog/share-dialog';
+import ShareDialogPingan from '../dialog/share-dialog-pingan';
 import EditFileTagDialog from '../dialog/edit-filetag-dialog';
 import RelatedFileDialogs from '../dialog/related-file-dialogs';
 
@@ -130,7 +130,7 @@ class ViewFileToolbar extends React.Component {
         </div>
         {this.state.isShareDialogShow && (
           <ModalPotal>
-            <ShareDialog 
+            <ShareDialogPingan 
               itemType={'file'}
               itemName={Utils.getFileName(this.props.path)}
               itemPath={this.props.path}

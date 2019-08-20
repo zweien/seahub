@@ -108,7 +108,7 @@ class Content extends Component {
             </thead>
             <tbody>
               {items.map((item, index) => {
-                return (<Item key={index} item={item} showModal={this.showModal} onRemoveLink={this.props.onRemoveLink}/>);
+                return (<Item key={index} item={item} showVerifyStatusModal={this.showVerifyStatusModal} showModal={this.showModal} onRemoveLink={this.props.onRemoveLink}/>);
               })}
             </tbody>
           </table>
@@ -120,6 +120,15 @@ class Content extends Component {
             <ModalFooter>
               <Button color="primary" onClick={this.copyToClipboard}>{gettext('Copy')}</Button>{' '}
               <Button color="secondary" onClick={this.toggleModal}>{gettext('Close')}</Button>
+            </ModalFooter>
+          </Modal>
+          <Modal isOpen={this.state.modalVerifyStatusOpen} toggle={this.toggleVerifyStatusModal} centered={true}>
+            <ModalHeader toggle={this.toggleVerifyStatusModal}>{'审核状态'}</ModalHeader>
+            <ModalBody>
+              {this.state.modalVerifyStatusContent}
+            </ModalBody>
+            <ModalFooter>
+              <Button color="secondary" onClick={this.toggleVerifyStatusModal}>{'关闭'}</Button>
             </ModalFooter>
           </Modal>
         </React.Fragment>

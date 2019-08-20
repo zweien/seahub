@@ -5,7 +5,7 @@ import IconButton from '../icon-button';
 import { gettext, siteRoot } from '../../utils/constants';
 import { Utils } from '../../utils/utils';
 import ModalPortal from '../modal-portal';
-import ShareDialog from '../dialog/share-dialog';
+import ShareDialogPingan from '../dialog/share-dialog-pingan';
 
 const propTypes = { 
   isLocked: PropTypes.bool.isRequired,
@@ -206,7 +206,7 @@ class FileToolbar extends React.Component {
 
         {this.state.isShareDialogOpen &&
         <ModalPortal>
-          <ShareDialog
+          <ShareDialogPingan
             itemType='file'
             itemName={fileName}
             itemPath={filePath}

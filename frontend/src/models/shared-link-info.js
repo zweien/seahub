@@ -14,6 +14,11 @@ class SharedLinkInfo {
     this.link = object.link;
     this.view_cnt = object.view_cnt;
     this.ctime = object.ctime;
+    this.status = object.status;
+    this.receivers = object.receivers;
+    this.pass_time = object.pass_time;
+    this.password = object.password;
+    this.verbose_status_str = object.verbose_status_str;
   }
 
 }

@@ -7,7 +7,7 @@ import { Utils } from '../../utils/utils';
 import { seafileAPI } from '../../utils/seafile-api';
 import { gettext, siteRoot, storages } from '../../utils/constants';
 import ModalPortal from '../../components/modal-portal';
-import ShareDialog from '../../components/dialog/share-dialog';
+import ShareDialogPingan from '../../components/dialog/share-dialog-pingan';
 import toaster from '../../components/toast';
 import DeleteRepoDialog from '../../components/dialog/delete-repo-dialog';
 import TransferDialog from '../../components/dialog/transfer-dialog';
@@ -334,7 +334,7 @@ class MylibRepoListItem extends React.Component {
         </MediaQuery>
         {this.state.isShareDialogShow && (
           <ModalPortal>
-            <ShareDialog
+            <ShareDialogPingan
               itemType={'library'}
               itemName={repo.repo_name}
               itemPath={'/'}
