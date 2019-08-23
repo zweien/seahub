@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import SharedFileView from './components/shared-file-view/shared-file-view';
+import SharedFileViewPingan from './components/shared-file-view/shared-file-view-pingan';
 import SharedFileViewTip from './components/shared-file-view/shared-file-view-tip';
 import { gettext } from './utils/constants';
 
@@ -13,7 +13,7 @@ const nextImgURL = `?p=${encodeURIComponent(nextImgPath)}`;
 
 class SharedFileViewImage extends React.Component {
   render() {
-    return <SharedFileView content={<FileContent />} />;
+    return <SharedFileViewPingan content={<FileContent />} />;
   }
 }
 

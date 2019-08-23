@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import SharedFileView from './components/shared-file-view/shared-file-view';
+import SharedFileViewPingan from './components/shared-file-view/shared-file-view-pingan';
 import SharedFileViewTip from './components/shared-file-view/shared-file-view-tip';
 import PDFViewer from './components/pdf-viewer';
 
@@ -10,7 +10,7 @@ const { err } = window.shared.pageOptions;
 
 class SharedFileViewPDF extends React.Component {
   render() {
-    return <SharedFileView content={<FileContent />} />;
+    return <SharedFileViewPingan content={<FileContent />} />;
   }
 }
 

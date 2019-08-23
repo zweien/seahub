@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { seafileAPI } from './utils/seafile-api';
 import { gettext, mediaUrl} from './utils/constants';
-import SharedFileView from './components/shared-file-view/shared-file-view';
+import SharedFileViewPingan from './components/shared-file-view/shared-file-view-pingan';
 import SharedFileViewTip from './components/shared-file-view/shared-file-view-tip';
 import Loading from './components/loading';
 import PDFViewer from './components/pdf-viewer';
@@ -16,7 +16,7 @@ const {
 
 class SharedFileViewDocument extends React.Component {
   render() {
-    return <SharedFileView content={<FileContent />} />;
+    return <SharedFileViewPingan content={<FileContent />} />;
   }
 }
 
