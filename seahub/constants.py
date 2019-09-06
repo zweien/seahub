@@ -5,6 +5,7 @@ DEFAULT_USER = 'default'
 
 # Guest user have limited operations, can not create group and library.
 GUEST_USER = 'guest'
+PINGAN_COMPANY_SECURITY = 'pingan_company_security'
 
 # Repo status
 REPO_STATUS_NORMAL = 'normal'

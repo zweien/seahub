@@ -4,7 +4,7 @@ import logging
 
 from django.conf import settings
 from seahub.constants import DEFAULT_USER, GUEST_USER, DEFAULT_ORG, \
-        DEFAULT_ADMIN, SYSTEM_ADMIN, DAILY_ADMIN, AUDIT_ADMIN
+        DEFAULT_ADMIN, SYSTEM_ADMIN, DAILY_ADMIN, AUDIT_ADMIN, PINGAN_COMPANY_SECURITY
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -24,6 +24,26 @@ def merge_roles(default, custom):
 
 DEFAULT_ENABLED_ROLE_PERMISSIONS = {
     DEFAULT_USER: {
+        'can_add_repo': True,
+        'can_add_group': True,
+        'can_view_org': True,
+        'can_add_public_repo': False,
+        'can_use_global_address_book': True,
+        'can_generate_share_link': True,
+        'can_generate_upload_link': True,
+        'can_send_share_link_mail': True,
+        'can_invite_guest': False,
+        'can_drag_drop_folder_to_sync': True,
+        'can_connect_with_android_clients': True,
+        'can_connect_with_ios_clients': True,
+        'can_connect_with_desktop_clients': True,
+        'can_export_files_via_mobile_client': True,
+        'storage_ids': [],
+        'role_quota': '',
+        'can_use_wiki': True,
+        'can_publish_repo': True,
+    },
+    PINGAN_COMPANY_SECURITY: {
         'can_add_repo': True,
         'can_add_group': True,
         'can_view_org': True,

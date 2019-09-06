@@ -60,7 +60,7 @@ from seahub.settings import AVATAR_FILE_STORAGE, \
 
 from seahub.wopi.settings import ENABLE_OFFICE_WEB_APP
 from seahub.onlyoffice.settings import ENABLE_ONLYOFFICE
-from seahub.constants import HASH_URLS, PERMISSION_READ
+from seahub.constants import HASH_URLS, PERMISSION_READ, PINGAN_COMPANY_SECURITY
 
 LIBRARY_TEMPLATES = getattr(settings, 'LIBRARY_TEMPLATES', {})
 
@@ -1273,5 +1273,6 @@ def react_fake_view(request, **kwargs):
         'can_add_public_repo': request.user.permissions.can_add_public_repo(),
         'folder_perm_enabled': folder_perm_enabled,
         'share_link_min_file_size': getattr(settings, 'SHARE_LINK_MIN_FILE_SIZE', 15),
-        'file_audit_enabled' : FILE_AUDIT_ENABLED
+        'file_audit_enabled' : FILE_AUDIT_ENABLED,
+        'can_export_download_link_excel': request.user.role == PINGAN_COMPANY_SECURITY,
     })

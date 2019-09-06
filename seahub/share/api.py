@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils import translation, timezone
@@ -13,6 +13,7 @@ from seahub.api2.authentication import TokenAuthentication
 from seahub.api2.throttling import UserRateThrottle
 from seahub.api2.utils import api_error
 from seahub.base.accounts import User
+from seahub.constants import PINGAN_COMPANY_SECURITY
 from seahub.profile.models import DetailedProfile
 from seahub.share.models import ApprovalChain, approval_chain_str2list, \
     FileShare, UserApprovalChain, approval_chain_list2str, \
@@ -211,10 +212,15 @@ class SysDownloadLinksReport(APIView):
     curl -v -H 'Authorization: Token afef525019166d0e29bfe126cf6163c8c5bc82a5' -H 'Accept: application/json; indent=4' http://seacloud.docker:8000/api/v2.1/admin/download-link-excel/?start=2018-06-07T14:50:00&end=2018-06-07T14:55:00
     """
     authentication_classes = (TokenAuthentication, SessionAuthentication)
-    permission_classes = (IsAdminUser, )
+    permission_classes = (IsAuthenticated, )
     throttle_classes = (UserRateThrottle, )
 
     def get(self, request):
+
+        if not (request.user.is_staff or request.user.role == PINGAN_COMPANY_SECURITY):
+            error_msg = 'Permission denied.'
+            return api_error(status.HTTP_403_FORBIDDEN, error_msg)
+
         translation.activate('zh-cn')
 
         end_date = timezone.now()

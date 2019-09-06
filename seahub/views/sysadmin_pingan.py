@@ -29,6 +29,7 @@ from seahub.share.models import FileShare, UploadLinkShare, \
     get_chain_step_sibling_type
 from seahub.share.constants import STATUS_VERIFING, STATUS_PASS, STATUS_VETO
 from seahub.settings import SITE_ROOT
+from seahub.constants import PINGAN_COMPANY_SECURITY
 
 logger = logging.getLogger(__name__)
 
@@ -752,10 +753,14 @@ def download_links_excel_report(download_links):
     return (head, data_list)
 
 @login_required
-@sys_staff_required
+#@sys_staff_required
 def sys_links_report_export_excel(request):
     """export links to excel.
     """
+    if not (request.user.is_staff or request.user.role == PINGAN_COMPANY_SECURITY):
+        error_msg = 'Permission denied.'
+        return HttpResponse(json.dumps({'error': error_msg}), status=403)
+
     next = request.META.get('HTTP_REFERER', None)
     # save current language
     cur_language = translation.get_language()

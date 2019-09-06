@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
-import { gettext } from '../../utils/constants';
+import { seafileAPI } from '../../utils/seafile-api';
+import { gettext, canExportDownloadLinkExcel, siteRoot } from '../../utils/constants';
 import CommonToolbar from '../../components/toolbar/common-toolbar';
 import ViewModeToolbar from '../../components/toolbar/view-mode-toolbar';
 import DirOperationToolBar from '../../components/toolbar/dir-operation-toolbar';
@@ -52,6 +53,10 @@ const propTypes = {
 };
 
 class LibContentToolbar extends React.Component {
+
+  exportDownloadExcel = () => {
+    location.href = siteRoot + 'sys/links-report/export-excel/';
+  }
 
   render() {
     if (this.props.isViewFile) {
@@ -124,6 +129,9 @@ class LibContentToolbar extends React.Component {
             }
           </div>
           <ViewModeToolbar currentMode={this.props.currentMode} switchViewMode={this.props.switchViewMode}/>
+          {this.props.isGroupOwnedRepo && canExportDownloadLinkExcel && this.props.path === '/' &&
+            <button className="btn btn-secondary operation-item ml-2" title={gettext('Export Excel')} onClick={this.exportDownloadExcel}>{gettext('查看下载链接')}</button>
+          }
         </div>
         <CommonToolbar repoID={this.props.repoID} onSearchedClick={this.props.onSearchedClick} searchPlaceholder={gettext('Search files in this library')}/>
       </Fragment>
