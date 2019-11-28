@@ -114,6 +114,7 @@ ENABLE_REMOTE_USER_AUTHENTICATION = False
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -129,6 +130,7 @@ MIDDLEWARE_CLASSES = (
     'seahub.trusted_ip.middleware.LimitIpMiddleware',
 )
 
+CORS_ORIGIN_ALLOW_ALL = True
 
 SITE_ROOT_URLCONF = 'seahub.urls'
 ROOT_URLCONF = 'seahub.utils.rooturl'
@@ -225,6 +227,7 @@ INSTALLED_APPS = (
     'post_office',
     'termsandconditions',
     'webpack_loader',
+    'corsheaders',
 
     'seahub.api2',
     'seahub.avatar',
@@ -256,6 +259,7 @@ INSTALLED_APPS = (
     'seahub.file_participants',
     'seahub.repo_api_tokens',
     'seahub.abuse_reports',
+    'seahub.ocm',
 )
 
 # Enable or disable view File Scan
@@ -724,6 +728,17 @@ ENABLE_WIKI = True
 # Enable 'repo snapshot label' feature
 ENABLE_REPO_SNAPSHOT_LABEL = False
 
+
+# Enable OCM Protocol
+ENABLE_OCM = True
+
+SEAFILE_PROTOCOL = 'Seafile API'
+WEBDAV_PROTOCOL = 'webdav'
+
+SUPPORTED_OCM_PROTOCOLS = (
+    SEAFILE_PROTOCOL,
+    WEBDAV_PROTOCOL,
+)
 
 ############################
 # Settings for SeafileDocs #
