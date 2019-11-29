@@ -2090,8 +2090,13 @@ class SeafileAPI {
     return this.req.post(url, params);
   }
 
-  deleteOCMShare(sharedSecret) {
-    let url = this.server + '/api/v2.1/ocm/shares/' + sharedSecret + '/';
+  deleteOCMShare(sharedSecret, remoteServerURL) {
+    let url = '';
+    if (remoteServerURL) {
+      url = remoteServerURL + '/api/v2.1/ocm/shares/' + sharedSecret + '/';
+    } else {
+      url = this.server + '/api/v2.1/ocm/shares/' + sharedSecret + '/';
+    }
     return this.req.delete(url);
   }
 
@@ -2106,8 +2111,13 @@ class SeafileAPI {
     return this.req.post(url, params);
   }
 
-  deleteOCMShareReceived(sharedSecret) {
-    let url = this.server + '/api/v2.1/ocm/shares-received/' + sharedSecret + '/';
+  deleteOCMShareReceived(sharedSecret, remoteServerURL) {
+    let url = '';
+    if (remoteServerURL) {
+      url = remoteServerURL + '/api/v2.1/ocm/shares-received/' + sharedSecret + '/';
+    } else {
+      url = this.server + '/api/v2.1/ocm/shares-received/' + sharedSecret + '/';
+    }
     return this.req.delete(url);
   }
 

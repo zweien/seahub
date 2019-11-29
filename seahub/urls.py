@@ -441,9 +441,9 @@ urlpatterns = [
     ## user::ocm
     url(r'api/v2.1/ocm/protocol/$', OCMProtocolView.as_view(), name='api-v2.1-ocm-protocol'),
     url(r'api/v2.1/ocm/shares/$', OCMSharesView.as_view(), name='api-v2.1-ocm-shares'),
-    url(r'api/v2.1/ocm/shares/(?P<shared_secret>[-0-9a-zA-Z]{23})/$', OCMShareView.as_view(), name='api-v2.1-ocm-share'),
+    url(r'api/v2.1/ocm/shares/notifications/$', OCMShareView.as_view(), name='api-v2.1-ocm-share'),
     url(r'api/v2.1/ocm/shares-received/$', OCMSharesReceivedView.as_view(), name='api-v2.1-ocm-shares-received'),
-    url(r'api/v2.1/ocm/shares-received/(?P<shared_secret>[-0-9a-zA-Z]{23})/$', OCMShareReceivedView.as_view(), name='api-v2.1-ocm-share-received'),
+    url(r'api/v2.1/ocm/shares-received/notifications/$', OCMShareReceivedView.as_view(), name='api-v2.1-ocm-share-received'),
 
     # admin: activities
     url(r'^api/v2.1/admin/user-activities/$', UserActivitiesView.as_view(), name='api-v2.1-admin-user-activity'),

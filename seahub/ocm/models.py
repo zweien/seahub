@@ -56,6 +56,7 @@ class OCMShare(models.Model):
     repo_name = models.CharField(max_length=settings.MAX_FILE_NAME)
     permission = models.CharField(max_length=50, choices=PERMISSION_CHOICES)
     token = models.CharField(max_length=40, unique=True)
+    path = models.TextField(default='')
     ctime = models.DateTimeField(auto_now_add=True)
 
     objects = OCMShareManager()
@@ -79,7 +80,7 @@ class OCMShare(models.Model):
 
 class OCMShareReceivedManager(models.Manager):
 
-    def create_ocm_share_received(self, shared_secret, from_user, to_user, from_server_url, repo_id, repo_name, path, permission, token):
+    def create_ocm_share_received(self, shared_secret, from_user, to_user, from_server_url, repo_id, repo_name, permission, token, path='/'):
         ocm_share = super(OCMShareReceivedManager, self).create(shared_secret=shared_secret,
                                                   from_user=from_user,
                                                   to_user=to_user,
@@ -101,6 +102,7 @@ class OCMShareReceived(models.Model):
     repo_name = models.CharField(max_length=settings.MAX_FILE_NAME)
     permission = models.CharField(max_length=50, choices=PERMISSION_CHOICES)
     token = models.CharField(max_length=40, unique=True)
+    path = models.TextField(default='')
     ctime = models.DateTimeField(auto_now_add=True)
 
     objects = OCMShareReceivedManager()

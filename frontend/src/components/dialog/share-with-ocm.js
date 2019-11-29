@@ -28,7 +28,7 @@ class ShareItem extends React.Component {
 
   deleteShareItem = () => {
     let item = this.props.item;
-    this.props.deleteShareItem(item.shared_secret);
+    this.props.deleteShareItem(item.shared_secret, item.to_sever_url);
   }
 
   render() {
@@ -68,8 +68,8 @@ class ShareList extends React.Component {
         <table className="table-thead">
           <thead>
             <tr>
-              <th width="25%">{gettext('Shared to ')}</th>
-              <th width="40%">{gettext('url')}</th>
+              <th width="25%">{gettext('Share to ')}</th>
+              <th width="40%">{gettext('URL')}</th>
               <th width="20%">{gettext('Permission')}</th>
               <th width="15%"></th>
             </tr>
@@ -112,8 +112,9 @@ class ShareWithOCM extends React.Component {
     };
     this.options = [];
     this.permissions = [];
-    this.ocmShareType = 'user';
-    this.ocmShareresourceType = 'library';
+    this.defaultOCMDesciption = '';
+    this.defaultOCMShareType = 'user';
+    this.defaultOCMResourceType = 'library';
 
   }
 
@@ -142,19 +143,22 @@ class ShareWithOCM extends React.Component {
       let ocm_protocol = res.data.supported_protocal;
       if (res.data.support_ocm) {
         seafileAPI.addOCMShare(toUser, toServerURL, repoID, itemPath, permission).then((res) => {
+          let ocmShares = this.state.ocmShares;
+          ocmShares.push(res.data);
+          this.setState({ocmShares: ocmShares});
           let { shared_secret, repo_name, token, provider_id, owner, owner_name, permission } = res.data;
           let ocm_params = {
             toServerURL: toServerURL,
             shareWith: toUser,
-            repoName: repo_name,
-            description: 'desciption',
+            name: repo_name,        // protocol's field name is "name", actually is repoName
+            description: this.defaultOCMDesciption,
             providerId: provider_id,
             owner: owner,
             sender: username,
             ownerDisplayName: owner_name,
             senderDisplayName: name, // sender nickname
-            shareType: this.ocmShareType,
-            resourceType: this.ocmShareType,
+            shareType: this.defaultOCMShareType,
+            resourceType: this.defaultOCMResourceType,
             protocol: {
               name: ocm_protocol,
               options: {
@@ -191,10 +195,17 @@ class ShareWithOCM extends React.Component {
     });
   }
 
-  deleteShareItem = (sharedSecret) => {
+  deleteShareItem = (sharedSecret, toServerURL) => {
     seafileAPI.deleteOCMShare(sharedSecret).then((res) => {
-      toaster.info('delete success.');
+      let ocmShares = this.state.ocmShares.filter(item => {
+        return item.shared_secret != sharedSecret;
+      });
+      this.setState({ocmShares: ocmShares});
+      seafileAPI.deleteOCMShareReceived(sharedSecret, toServerURL).then((res) => {
+        toaster.info('delete success.');
+      })
     }).catch(error => {
+      console.log(error);
       let errMessage = Utils.getErrorMsg(error);
       toaster.danger(errMessage);
     });
@@ -208,9 +219,9 @@ class ShareWithOCM extends React.Component {
         <table>
           <thead>
             <tr>
-              <th width="25%">{gettext('User')}</th>
-              <th width="35%">{gettext('URL')}</th>
-              <th width="25%">{gettext('Permission')}</th>
+              <th width="35%">{gettext('User')}</th>
+              <th width="50%">{gettext('URL')}</th>
+              {/* <th width="25%">{gettext('Permission')}</th> */}
               <th width="15%"></th>
             </tr>
           </thead>
@@ -228,7 +239,7 @@ class ShareWithOCM extends React.Component {
                   onChange={this.handleURLChange}
                 />
               </td>
-              <td>
+              {/* <td>
                 <SharePermissionEditor
                   isTextMode={false}
                   isEditIconShow={false}
@@ -236,7 +247,7 @@ class ShareWithOCM extends React.Component {
                   permissions={this.permissions}
                   onPermissionChanged={this.setPermission}
                 />
-              </td>
+              </td> */}
               <td>
                 <Button onClick={this.startOCMShare}>{gettext('Submit')}</Button>
               </td>
