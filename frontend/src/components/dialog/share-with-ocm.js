@@ -9,82 +9,87 @@ import toaster from '../toast';
 import SharePermissionEditor from '../select-editor/share-permission-editor';
 import '../../css/invitations.css';
 
-// class UserItem extends React.Component {
+class ShareItem extends React.Component {
 
-//   constructor(props) {
-//     super(props);
-//     this.state = {
-//       isOperationShow: false
-//     };
-//   }
+  constructor(props) {
+    super(props);
+    this.state = {
+      isOperationShow: false
+    };
+  }
   
-//   onMouseEnter = () => {
-//     this.setState({isOperationShow: true});
-//   }
+  onMouseEnter = () => {
+    this.setState({isOperationShow: true});
+  }
 
-//   onMouseLeave = () => {
-//     this.setState({isOperationShow: false});
-//   }
+  onMouseLeave = () => {
+    this.setState({isOperationShow: false});
+  }
 
-//   deleteShareItem = () => {
-//     let item = this.props.item;
-//     this.props.deleteShareItem(item.user_info.name);
-//   }
-  
-//   onChangeUserPermission = (permission) => {
-//     let item = this.props.item;
-//     this.props.onChangeUserPermission(item, permission);
-//   }
+  deleteShareItem = () => {
+    let item = this.props.item;
+    this.props.deleteShareItem(item.shared_secret);
+  }
 
-//   render() {
-//     let item = this.props.item;
-//     let currentPermission = item.is_admin ? 'admin' : item.permission;
-//     return (
-//       <tr onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave}>
-//         <td className="name">{item.user_info.nickname}</td>
-//         <td>
-//           <SharePermissionEditor 
-//             isTextMode={true}
-//             isEditIconShow={this.state.isOperationShow}
-//             currentPermission={currentPermission}
-//             permissions={this.props.permissions}
-//             onPermissionChanged={this.onChangeUserPermission}
-//           />
-//         </td>
-//         <td>
-//           <span
-//             className={`sf2-icon-x3 action-icon ${this.state.isOperationShow ? '' : 'hide'}`}
-//             onClick={this.deleteShareItem} 
-//             title={gettext('Delete')}
-//           >
-//           </span>
-//         </td>
-//       </tr>
-//     );
-//   }
-// }
+  render() {
+    let item = this.props.item;
+    return (
+      <tr onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave}>
+        <td className="name">{item.to_user}</td>
+        <td>{item.to_sever_url}</td>
+        <td>{item.permission}</td>
+        {/* <td>
+          <SharePermissionEditor 
+            isTextMode={true}
+            isEditIconShow={this.state.isOperationShow}
+            currentPermission={currentPermission}
+            permissions={this.props.permissions}
+            onPermissionChanged={this.onChangeUserPermission}
+          />
+        </td> */}
+        <td>
+          <span
+            className={`sf2-icon-x3 action-icon ${this.state.isOperationShow ? '' : 'hide'}`}
+            onClick={this.deleteShareItem}
+            title={gettext('Delete')}
+          >
+          </span>
+        </td>
+      </tr>
+    );
+  }
+}
 
-// class UserList extends React.Component {
+class ShareList extends React.Component {
 
-//   render() {
-//     let items = this.props.items;
-//     return (
-//       <tbody>
-//         {items.map((item, index) => {
-//           return (
-//             <UserItem 
-//               key={index} 
-//               item={item} 
-//               permissions={this.props.permissions}
-//               deleteShareItem={this.props.deleteShareItem}
-//               onChangeUserPermission={this.props.onChangeUserPermission}
-//             />
-//           );
-//         })}
-//       </tbody>
-//     );
-//   }
-// }
+  render() {
+    return (
+      <div className="share-list-container">
+        <table className="table-thead">
+          <thead>
+            <tr>
+              <th width="25%">{gettext('Shared to ')}</th>
+              <th width="40%">{gettext('url')}</th>
+              <th width="20%">{gettext('Permission')}</th>
+              <th width="15%"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.props.items.map((item, index) => {
+              return (
+                <ShareItem
+                  key={index}
+                  item={item}
+                  deleteShareItem={this.props.deleteShareItem}
+                />
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+}
 
 const propTypes = {
   // isGroupOwnedRepo: PropTypes.bool,
@@ -134,11 +139,9 @@ class ShareWithOCM extends React.Component {
     let { repoID, itemPath } = this.props;
     let { toServerURL, toUser, permission } = this.state;
     seafileAPI.getOCMProcotolRemoteServer(toServerURL).then((res) => {
-      console.log('=== from toServerURL res = ')
-      console.log(res)
       let ocm_protocol = res.data.supported_protocal;
       if (res.data.support_ocm) {
-        seafileAPI.AddOCMShare(toUser, toServerURL, repoID, itemPath, permission).then((res) => {
+        seafileAPI.addOCMShare(toUser, toServerURL, repoID, itemPath, permission).then((res) => {
           let { shared_secret, repo_name, token, provider_id, owner, owner_name, permission } = res.data;
           let ocm_params = {
             toServerURL: toServerURL,
@@ -163,7 +166,7 @@ class ShareWithOCM extends React.Component {
             }
           };
           // add ocm share in this server, then send post to remote server
-          seafileAPI.AddOCMShareReceived(toServerURL, ocm_params).then((res) => {
+          seafileAPI.addOCMShareReceived(toServerURL, ocm_params).then((res) => {
             
           });
         });
@@ -188,8 +191,13 @@ class ShareWithOCM extends React.Component {
     });
   }
 
-  setPermission = (permission) => {
-    this.setState({permission: permission});
+  deleteShareItem = (sharedSecret) => {
+    seafileAPI.deleteOCMShare(sharedSecret).then((res) => {
+      toaster.info('delete success.');
+    }).catch(error => {
+      let errMessage = Utils.getErrorMsg(error);
+      toaster.danger(errMessage);
+    });
   }
 
 
@@ -235,24 +243,10 @@ class ShareWithOCM extends React.Component {
             </tr>
           </tbody>
         </table>
-        <div className="share-list-container">
-          list
-          <table className="table-thead-hidden">
-            <thead>
-              <tr>
-                <th width="50%">{gettext('User')}</th>
-                <th width="35%">{gettext('Permission')}</th>
-                <th width="15%"></th>
-              </tr>
-            </thead>
-            {/* <UserList 
-              items={sharedItems}
-              permissions={this.permissions}
-              deleteShareItem={this.deleteShareItem} 
-              onChangeUserPermission={this.onChangeUserPermission}
-            /> */}
-          </table>
-        </div>
+        <ShareList
+          items={ocmShares}
+          deleteShareItem={this.deleteShareItem} 
+        />
       </Fragment>
     );
   }

@@ -37,9 +37,7 @@ from seahub.profile.models import Profile
 logger = logging.getLogger(__name__)
 
 
-def gen_shared_secret(length=0):
-    if length == 0:
-        length = random.randint(1, 30)
+def gen_shared_secret(length=23):
     return ''.join(random.choice(string.ascii_letters) for i in range(length))
 
 
@@ -66,12 +64,12 @@ class OCMSharesView(APIView):
     permission_classes = (IsAuthenticated,)
     throttle_classes = (UserRateThrottle,)
 
-    def get(self):
+    def get(self, request):
         """
         list ocm shares
         """
         ocm_share_list = []
-        ocm_shares = OCMShareManager.all()
+        ocm_shares = OCMShare.objects.all()
         for ocm_share in ocm_shares:
             ocm_share_list.append(ocm_share.to_dict())
         return Response({'ocm_share_list': ocm_share_list})
@@ -148,7 +146,7 @@ class OCMSharesView(APIView):
         )
 
         ocm_share = OCMShare.objects.create_ocm_share(
-            shared_secret=gen_shared_secret(23),
+            shared_secret=gen_shared_secret(),
             from_user=request.user.username,
             to_user=to_user,
             to_server_url=to_server_url,
@@ -166,17 +164,41 @@ class OCMSharesView(APIView):
         return Response(res)
 
 
+class OCMShareView(APIView):
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = (UserRateThrottle,)
+
+    def delete(self, request, shared_secret):
+        """
+        delete ocm share by shared secret
+        """
+
+        ocm_share = OCMShare.objects.filter(shared_secret=shared_secret)
+        if not ocm_share:
+            error_msg = 'shared_secret %s not found.' % shared_secret
+            return api_error(status.HTTP_404_NOT_FOUND, error_msg)
+
+        try:
+            ocm_share.delete()
+        except Exception as e:
+            logging.error(e)
+            return api_error(status.HTTP_500_INTERNAL_SERVER_ERROR, 'Internal Server Error')
+
+        return Response({'success': True})
+
+
 class OCMSharesReceivedView(APIView):
     #authentication_classes = (TokenAuthentication, SessionAuthentication)
     #permission_classes = (IsAuthenticated,)
     throttle_classes = (UserRateThrottle,)
 
-    def get(self):
+    def get(self, request):
         """
         list ocm shares received
         """
         ocm_share_received_list = []
-        ocm_shares_received = OCMShareReceivedManager.all()
+        ocm_shares_received = OCMShare.objects.all()
         for ocm_share_received in ocm_shares_received:
             ocm_share_received_list.append(ocm_share_received.to_dict())
         return Response({'ocm_share_received_list': ocm_share_received_list})
@@ -285,3 +307,26 @@ class OCMSharesReceivedView(APIView):
 
         res = ocm_share_received.to_dict()
         return Response(res)
+
+class OCMShareReceivedView(APIView):
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = (UserRateThrottle,)
+
+    def delete(self, request, shared_secret):
+        """
+        delete ocm share received by shared secret
+        """
+
+        ocm_share_received = OCMShareReceived.objects.filter(shared_secret=shared_secret)
+        if not ocm_share_received:
+            error_msg = 'shared_secret %s not found.' % shared_secret
+            return api_error(status.HTTP_404_NOT_FOUND, error_msg)
+
+        try:
+            ocm_share_received.delete()
+        except Exception as e:
+            logging.error(e)
+            return api_error(status.HTTP_500_INTERNAL_SERVER_ERROR, 'Internal Server Error')
+
+        return Response({'success': True})

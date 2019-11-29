@@ -2070,12 +2070,15 @@ class SeafileAPI {
 
   getOCMProcotolRemoteServer(toServerURL) {
     let url = toServerURL + '/api/v2.1/ocm/protocol';
-    console.log('get protool url = ' + url);
-    console.log(this.req)
     return this.req.get(url);
   }
 
-  AddOCMShare(toUser, toServerURL, repoID, path, permission) {
+  listOCMShares() {
+    let url = this.server + '/api/v2.1/ocm/shares/';
+    return this.req.get(url);
+  }
+
+  addOCMShare(toUser, toServerURL, repoID, path, permission) {
     let url = this.server + '/api/v2.1/ocm/shares/';
     let params = {
       to_user: toUser,
@@ -2087,19 +2090,25 @@ class SeafileAPI {
     return this.req.post(url, params);
   }
 
-  AddOCMShareReceived(toServerURL, params) {
-    let url = toServerURL + '/api/v2.1/ocm/shares-received/';
-    return this.req.post(url, params);
+  deleteOCMShare(sharedSecret) {
+    let url = this.server + '/api/v2.1/ocm/shares/' + sharedSecret + '/';
+    return this.req.delete(url);
   }
 
-  listOCMShares() {
-    let url = this.server + '/api/v2.1/ocm/shares/';
-    return this.req.get(url);
-  }
 
   listOCMSharesReceived() {
     let url = this.server + '/api/v2.1/ocm/shares-received/';
     return this.req.get(url);
+  }
+
+  addOCMShareReceived(toServerURL, params) {
+    let url = toServerURL + '/api/v2.1/ocm/shares-received/';
+    return this.req.post(url, params);
+  }
+
+  deleteOCMShareReceived(sharedSecret) {
+    let url = this.server + '/api/v2.1/ocm/shares-received/' + sharedSecret + '/';
+    return this.req.delete(url);
   }
 
   sysAdminUploadLicense(file) {
