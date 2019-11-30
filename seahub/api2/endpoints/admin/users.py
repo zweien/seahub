@@ -1064,7 +1064,7 @@ class AdminUserBeSharedRepos(APIView):
             repo_info['encrypted'] = repo.encrypted
             repo_info['file_count'] = repo.file_count
             repo_info['status'] = normalize_repo_status_code(repo.status)
-            repo_info['last_modify'] = timestamp_to_isoformat_timestr(repo.last_modify)
+            repo_info['last_modified'] = timestamp_to_isoformat_timestr(repo.last_modified)
 
             repos_info.append(repo_info)
 

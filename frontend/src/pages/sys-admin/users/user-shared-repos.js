@@ -103,7 +103,7 @@ class Item extends Component {
           <td>{this.renderRepoName()}</td>
           <td>{this.getOwnerLink()}</td>
           <td>{Utils.bytesToSize(item.size)}</td>
-          <td>{moment(item.last_modify).fromNow()}</td>
+          <td>{moment(item.last_modified).fromNow()}</td>
         </tr>
       </Fragment>
     );
