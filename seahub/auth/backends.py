@@ -130,8 +130,11 @@ class SeafileRemoteUserBackend(AuthBackend):
         username = self.clean_username(remote_user)
 
         # get user from ccnet
-        user = self.get_user(username)
-        if not user:
+        local_ccnet_users = ccnet_api.search_emailusers('DB', username, -1, -1)
+        if not local_ccnet_users:
+            local_ccnet_users = ccnet_api.search_emailusers('LDAP', username, -1, -1)
+
+        if not local_ccnet_users:
             # when user doesn't exist
             if not self.create_unknown_user:
                 return None
@@ -148,8 +151,16 @@ class SeafileRemoteUserBackend(AuthBackend):
             except Exception as e:
                 logger.error(e)
                 return None
+        else:
+            user = self.get_user(username)
+
+        logger.debug('in SeafileRemoteUserBackend.authenticate')
+        logger.debug('username: %s' % username)
+        logger.debug('length of local_ccnet_users: %s' % len(local_ccnet_users))
+        logger.debug('before return, user.username: %s' % user.username if user else '')
 
         if self.user_can_authenticate(user):
+            logger.debug('in user_can_authenticate')
             # update user info after authenticated
             try:
                 self.configure_user(request, user)

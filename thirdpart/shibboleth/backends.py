@@ -62,5 +62,14 @@ class ShibbolethRemoteUserBackend(RemoteUserBackend):
                     notify_admins_on_register_complete(user.email)
             else:
                 user = None
+        else:
+            user = User.objects.get(email=username)
+
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.debug('in ShibbolethRemoteUserBackend.authenticate')
+        logger.debug('username: %s' % username)
+        logger.debug('length of local_ccnet_users: %s' % len(local_ccnet_users))
+        logger.debug('before return, user.username: %s' % user.username if user else '')
 
         return user
